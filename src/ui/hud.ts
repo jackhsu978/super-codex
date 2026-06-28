@@ -84,7 +84,7 @@ export class HudController {
   showTitle(world: string, lives: number, handler: () => void): void {
     this.showOverlay(
       {
-        kicker: "Codex's Star Sprint",
+        kicker: "Super Codex",
         title: `World ${world}`,
         copy: `Codex x ${lives}`,
         button: 'Start',
