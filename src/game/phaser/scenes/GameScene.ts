@@ -392,7 +392,7 @@ export class GameScene extends Phaser.Scene {
       this.hud.showCourseIntro(this.level.world, this.runState.lives, () => this.startRun());
     } else {
       this.physics.pause();
-      this.hud.showTitle(this.level.world, this.runState.lives, () => this.startRun());
+      this.hud.showTitle(() => this.showFirstCourseIntro());
     }
   }
 
@@ -486,7 +486,7 @@ export class GameScene extends Phaser.Scene {
       event.preventDefault();
 
       if (!this.isStarted) {
-        this.startRun();
+        this.hud.activatePrimaryAction();
       } else {
         this.togglePause();
       }
@@ -1563,6 +1563,10 @@ export class GameScene extends Phaser.Scene {
       this.handleEnemyCollision(enemy as Phaser.Physics.Arcade.Sprite);
     });
     this.physics.add.overlap(this.player, this.goalZone, () => this.finishLevel());
+  }
+
+  private showFirstCourseIntro(): void {
+    this.hud.showCourseIntro(this.level.world, this.runState.lives, () => this.startRun());
   }
 
   private startRun(): void {

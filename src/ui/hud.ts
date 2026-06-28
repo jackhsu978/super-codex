@@ -81,17 +81,22 @@ export class HudController {
     this.shortcutsCloseButton.onclick = handler;
   }
 
-  showTitle(world: string, lives: number, handler: () => void): void {
+  showTitle(handler: () => void): void {
     this.showOverlay(
       {
-        kicker: "Super Codex",
-        title: `World ${world}`,
-        copy: `Codex x ${lives}`,
-        button: 'Start',
-        variant: 'course'
+        kicker: 'Retro Platformer',
+        title: 'Super Codex',
+        copy: 'Run, jump, collect coins, stomp enemies, and reach the banner.',
+        button: 'Start'
       },
       handler
     );
+  }
+
+  activatePrimaryAction(): void {
+    if (!this.primaryButton.hidden && !this.primaryButton.disabled) {
+      this.primaryButton.click();
+    }
   }
 
   showCourseIntro(world: string, lives: number, handler: () => void): void {
