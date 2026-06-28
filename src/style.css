@@ -17,6 +17,13 @@
 
 * {
   box-sizing: border-box;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+html,
+body {
+  -webkit-touch-callout: none;
 }
 
 body {
