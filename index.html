@@ -64,7 +64,7 @@
               <p class="overlay__kicker">Controls</p>
               <button id="shortcuts-close" class="shortcuts__close" type="button" aria-label="Close shortcuts">×</button>
             </div>
-            <h2 id="shortcuts-title">Keyboard Shortcuts</h2>
+            <h2 id="shortcuts-title">Controls</h2>
             <dl class="shortcuts__list">
               <div>
                 <dt><kbd>←</kbd><kbd>→</kbd> or <kbd>A</kbd><kbd>D</kbd></dt>
@@ -106,6 +106,18 @@
                 <dt><kbd>?</kbd> or <kbd>Esc</kbd></dt>
                 <dd>Close</dd>
               </div>
+              <div class="shortcuts__touch-row">
+                <dt><kbd>Swipe Up</kbd> or <kbd>Tap Right</kbd></dt>
+                <dd>Jump</dd>
+              </div>
+              <div class="shortcuts__touch-row">
+                <dt><kbd>Drag Left</kbd><kbd>Drag Right</kbd></dt>
+                <dd>Move</dd>
+              </div>
+              <div class="shortcuts__touch-row">
+                <dt><kbd>Hold B</kbd></dt>
+                <dd>Run / shot</dd>
+              </div>
             </dl>
           </div>
         </div>
@@ -119,6 +131,22 @@
             </p>
             <button id="overlay-primary" class="overlay__button" type="button">Start</button>
           </div>
+        </div>
+
+        <div id="touch-controls" class="touch-controls">
+          <div id="touch-gesture-layer" class="touch-gesture-layer" aria-hidden="true"></div>
+          <div id="touch-stick" class="touch-stick" aria-hidden="true">
+            <span class="touch-stick__arrow touch-stick__arrow--left"></span>
+            <span class="touch-stick__arrow touch-stick__arrow--right"></span>
+            <span class="touch-stick__arrow touch-stick__arrow--up"></span>
+            <span class="touch-stick__arrow touch-stick__arrow--down"></span>
+          </div>
+          <button id="touch-action" class="touch-action" type="button" aria-label="Run or shoot">
+            <span aria-hidden="true">B</span>
+          </button>
+          <button id="touch-help" class="touch-help" type="button" aria-label="Show controls">
+            <span aria-hidden="true">?</span>
+          </button>
         </div>
       </section>
     </main>
