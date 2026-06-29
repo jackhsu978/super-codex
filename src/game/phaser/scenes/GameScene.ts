@@ -3506,12 +3506,13 @@ export class GameScene extends Phaser.Scene {
   }
 
   private isStompCollision(body: Phaser.Physics.Arcade.Body, enemyBody: Phaser.Physics.Arcade.Body): boolean {
-    const hitTop = body.touching.down && enemyBody.touching.up;
-    const wasAbove = body.prev.y + body.height <= enemyBody.top + 10;
-    const stillNearTop = body.bottom <= enemyBody.top + 22;
-    const fallingOrSettled = body.velocity.y >= 0;
+    const previousBottom = body.prev.y + body.height;
+    const crossedEnemyTop = previousBottom <= enemyBody.top + 10;
+    const feetNearEnemyTop = body.bottom <= enemyBody.top + 22;
+    const horizontalOverlap = body.right > enemyBody.left + 6 && body.left < enemyBody.right - 6;
+    const notMovingUp = body.velocity.y >= -20;
 
-    return fallingOrSettled && (hitTop || wasAbove || stillNearTop);
+    return horizontalOverlap && notMovingUp && crossedEnemyTop && feetNearEnemyTop;
   }
 
   private stompEnemy(enemy: Phaser.Physics.Arcade.Sprite): void {

@@ -148,7 +148,7 @@ const WORLD_1_1: LevelDefinition = {
   height: 18,
   timeLimit: 400,
   spawn: { x: 3, y: 14 },
-  checkpoint: { x: 90, y: 14 },
+  checkpoint: { x: 93, y: 14 },
   goal: { x: 153, y: 6 },
   themeRegions: [{ x: 164, y: 5, w: 37, h: 13, theme: 'underground' }],
   solids: [
@@ -232,7 +232,7 @@ const WORLD_1_1: LevelDefinition = {
     { entry: { x: 194, y: 14 }, target: { x: 80, y: 14 }, warpLabel: 'Back to course' }
   ],
   coins: [
-    ...line(37, 13, 3),
+    ...line(34, 13, 3),
     ...line(68, 8, 3),
     ...line(90, 13, 4),
     ...line(118, 10, 4),
@@ -256,7 +256,7 @@ const WORLD_1_1: LevelDefinition = {
     { x: 47, y: 8 },
     { x: 74, y: 13, kind: 'pipePlant' },
     { x: 70, y: 10 },
-    { x: 94, y: 15 },
+    { x: 98, y: 15 },
     { x: 132, y: 14, kind: 'pipePlant' },
     { x: 122, y: 12, kind: 'shellback' },
     { x: 137, y: 15 }
