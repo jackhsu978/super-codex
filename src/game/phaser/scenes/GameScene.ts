@@ -1440,21 +1440,25 @@ export class GameScene extends Phaser.Scene {
 
     const poleX = this.level.goal.x * TILE_SIZE;
     const baseY = (this.level.height - 2) * TILE_SIZE;
+    const flagY = this.level.goal.y * TILE_SIZE;
+    const poleTopY = flagY - 10;
+    const poleHeight = Math.max(TILE_SIZE, baseY - poleTopY);
+    const poleCenterY = poleTopY + poleHeight / 2;
     const houseX = Math.min(this.level.width * TILE_SIZE - 84, poleX + 124);
 
     this.goalHouseX = houseX;
     this.goalDoorX = houseX;
 
     this.add.image(houseX, baseY + 6, 'goal-house').setOrigin(0.5, 1).setDepth(-2);
-    this.add.rectangle(poleX, baseY - 128, 10, 256, 0x111927).setOrigin(0.5, 0.5).setDepth(1);
-    this.add.rectangle(poleX, baseY - 128, 5, 256, 0xf8fbff).setOrigin(0.5, 0.5).setDepth(2);
-    this.add.rectangle(poleX - 1, baseY - 128, 2, 256, 0xcfd7e6).setOrigin(0.5, 0.5).setDepth(3);
-    this.add.image(poleX, this.level.goal.y * TILE_SIZE - 10, 'flagpole-cap').setDepth(4);
-    this.flag = this.add.image(poleX + 18, this.level.goal.y * TILE_SIZE, 'flag').setOrigin(0, 0.15).setDepth(2);
+    this.add.rectangle(poleX, poleCenterY, 10, poleHeight, 0x111927).setOrigin(0.5, 0.5).setDepth(1);
+    this.add.rectangle(poleX, poleCenterY, 5, poleHeight, 0xf8fbff).setOrigin(0.5, 0.5).setDepth(2);
+    this.add.rectangle(poleX - 1, poleCenterY, 2, poleHeight, 0xcfd7e6).setOrigin(0.5, 0.5).setDepth(3);
+    this.add.image(poleX, poleTopY, 'flagpole-cap').setDepth(4);
+    this.flag = this.add.image(poleX + 18, flagY, 'flag').setOrigin(0, 0.15).setDepth(2);
     this.add.rectangle(poleX, baseY + 8, 58, 14, 0x111927).setOrigin(0.5, 0.5).setDepth(1);
     this.add.rectangle(poleX, baseY + 5, 50, 8, 0x6d4228).setOrigin(0.5, 0.5).setDepth(2);
 
-    this.goalZone = this.add.zone(poleX - 20, 0, 76, this.level.height * TILE_SIZE).setOrigin(0, 0);
+    this.goalZone = this.add.zone(poleX - 20, poleTopY - 16, 76, poleHeight + 36).setOrigin(0, 0);
     this.physics.add.existing(this.goalZone, true);
   }
 
