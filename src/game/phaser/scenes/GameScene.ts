@@ -98,6 +98,7 @@ const PET_FRAME_WIDTH = 192;
 const PET_FRAME_HEIGHT = 208;
 const PET_SHEET_TEXTURE = 'codex-pet';
 const PET_JUMP_FRAME = 34;
+const PET_CROUCH_FRAME = 0;
 const BONUS_BLOCK_FRAMES = ['tile-bonus', 'tile-bonus-bright', 'tile-bonus', 'tile-bonus-shadow'];
 const COIN_FRAMES = ['coin', 'coin-mid', 'coin-side', 'coin-mid'];
 const COURSE_MUSIC_NOTES = [523.25, 659.25, 783.99, 0, 698.46, 783.99, 880, 0, 659.25, 587.33, 523.25, 0, 587.33, 659.25, 523.25, 0];
@@ -1895,8 +1896,7 @@ export class GameScene extends Phaser.Scene {
     const movementDirection = direction || Math.sign(body.velocity.x) || storedFacing;
 
     if (this.isCrouching) {
-      this.player.setFlipX(false);
-      this.player.play('pet-idle', true);
+      this.setPlayerCrouchPose();
       return;
     }
 
@@ -1926,6 +1926,19 @@ export class GameScene extends Phaser.Scene {
 
     if (String(this.player.frame.name) !== String(PET_JUMP_FRAME)) {
       this.player.setFrame(PET_JUMP_FRAME);
+    }
+  }
+
+  private setPlayerCrouchPose(): void {
+    this.player.anims.stop();
+    this.player.setFlipX(false);
+
+    if (this.player.texture.key !== PET_SHEET_TEXTURE) {
+      this.player.setTexture(PET_SHEET_TEXTURE);
+    }
+
+    if (String(this.player.frame.name) !== String(PET_CROUCH_FRAME)) {
+      this.player.setFrame(PET_CROUCH_FRAME);
     }
   }
 
