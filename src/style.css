@@ -23,6 +23,7 @@
 
 html,
 body {
+  overscroll-behavior: none;
   -webkit-touch-callout: none;
 }
 
@@ -57,10 +58,12 @@ button {
 #game-root {
   position: absolute;
   inset: 0;
+  touch-action: none;
 }
 
 #game-root canvas {
   display: block;
+  touch-action: none;
   image-rendering: pixelated;
 }
 

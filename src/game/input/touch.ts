@@ -43,9 +43,10 @@ const FIELD_SWIPE_UP = 34;
 const FIELD_SWIPE_DOWN = 42;
 const TAP_MAX_DISTANCE = 12;
 const TAP_MAX_MS = 230;
-const RIGHT_JUMP_HOLD_MS = 210;
+const TAP_JUMP_HOLD_MS = 210;
 
 export class TouchControls {
+  private readonly doc: Document;
   private readonly stage: HTMLElement;
   private readonly root?: HTMLElement;
   private readonly layer?: HTMLElement;
@@ -56,6 +57,7 @@ export class TouchControls {
   private readonly gestures = new Map<number, GesturePointer>();
   private readonly actionPointers = new Set<number>();
   private readonly queued: QueuedPresses = { jump: false, down: false, run: false, attack: false };
+  private readonly nonPassiveOptions: AddEventListenerOptions = { passive: false };
   private leftDown = false;
   private rightDown = false;
   private upDown = false;
@@ -65,6 +67,7 @@ export class TouchControls {
   private runDown = false;
 
   constructor(doc: Document, onHelp: () => void) {
+    this.doc = doc;
     this.stage = this.requireElement(doc, 'game-stage');
     this.root = this.getElement(doc, 'touch-controls');
     this.layer = this.getElement(doc, 'touch-gesture-layer');
@@ -127,6 +130,14 @@ export class TouchControls {
     this.helpButton?.removeEventListener('click', this.handleHelpClick);
     this.helpButton?.removeEventListener('pointerdown', this.preventPointerDefault);
     this.root?.removeEventListener('contextmenu', this.preventContextMenu);
+    this.doc.removeEventListener('touchstart', this.preventMultiTouch, this.nonPassiveOptions);
+    this.doc.removeEventListener('touchmove', this.preventMultiTouch, this.nonPassiveOptions);
+    this.doc.removeEventListener('gesturestart', this.preventDefault);
+    this.doc.removeEventListener('gesturechange', this.preventDefault);
+    this.doc.removeEventListener('gestureend', this.preventDefault);
+    this.doc.removeEventListener('dblclick', this.preventDefault, true);
+    this.doc.removeEventListener('wheel', this.preventWheelZoom, this.nonPassiveOptions);
+    this.doc.removeEventListener('keydown', this.preventKeyboardZoom, true);
     this.reset();
   }
 
@@ -146,7 +157,40 @@ export class TouchControls {
     this.helpButton?.addEventListener('click', this.handleHelpClick);
     this.helpButton?.addEventListener('pointerdown', this.preventPointerDefault);
     this.root?.addEventListener('contextmenu', this.preventContextMenu);
+    this.doc.addEventListener('touchstart', this.preventMultiTouch, this.nonPassiveOptions);
+    this.doc.addEventListener('touchmove', this.preventMultiTouch, this.nonPassiveOptions);
+    this.doc.addEventListener('gesturestart', this.preventDefault);
+    this.doc.addEventListener('gesturechange', this.preventDefault);
+    this.doc.addEventListener('gestureend', this.preventDefault);
+    this.doc.addEventListener('dblclick', this.preventDefault, true);
+    this.doc.addEventListener('wheel', this.preventWheelZoom, this.nonPassiveOptions);
+    this.doc.addEventListener('keydown', this.preventKeyboardZoom, true);
   }
+
+
+  private readonly preventDefault = (event: Event): void => {
+    event.preventDefault();
+  };
+
+  private readonly preventMultiTouch = (event: TouchEvent): void => {
+    if (event.touches.length > 1) {
+      event.preventDefault();
+    }
+  };
+
+  private readonly preventWheelZoom = (event: WheelEvent): void => {
+    if (event.ctrlKey || event.metaKey) {
+      event.preventDefault();
+    }
+  };
+
+  private readonly preventKeyboardZoom = (event: KeyboardEvent): void => {
+    const key = event.key.toLowerCase();
+    const isZoomShortcut = event.ctrlKey || event.metaKey;
+    if (isZoomShortcut && (key === '+' || key === '=' || key === '-' || key === '_' || key === '0')) {
+      event.preventDefault();
+    }
+  };
 
   private readonly handleLayerPointerDown = (event: PointerEvent): void => {
     this.beginGesture(event, false);
@@ -190,8 +234,8 @@ export class TouchControls {
     this.gestures.set(event.pointerId, pointer);
     this.updateGesture(pointer, event);
 
-    if (!startedOnPad && !pointer.startedOnLeftSide) {
-      this.queueJump(pointer, performance.now() + RIGHT_JUMP_HOLD_MS);
+    if (!startedOnPad) {
+      this.queueJump(pointer, performance.now() + TAP_JUMP_HOLD_MS);
     }
 
     this.refreshGestureState();
