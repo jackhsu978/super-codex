@@ -74,11 +74,11 @@ button {
   z-index: 4;
   display: grid;
   width: 100%;
-  grid-template-columns: 1.26fr 0.62fr 0.72fr 0.58fr;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: start;
-  gap: 16px;
-  padding: 13px 32px 42px;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0));
+  gap: 10px;
+  padding: 12px 34px 36px;
+  background: transparent;
   pointer-events: none;
 }
 
@@ -88,9 +88,16 @@ button {
   font-family: "Courier New", "SFMono-Regular", Consolas, monospace;
   font-weight: 900;
   text-transform: uppercase;
-  text-shadow:
-    2px 2px 0 var(--ui-shadow),
-    0 0 10px rgba(0, 0, 0, 0.38);
+  text-shadow: 2px 2px 0 var(--ui-shadow);
+}
+
+.hud__item--coins,
+.hud__item--world {
+  text-align: center;
+}
+
+.hud__item--time {
+  text-align: right;
 }
 
 .hud__label {
@@ -121,9 +128,19 @@ button {
   font-family: "Courier New", "SFMono-Regular", Consolas, monospace;
   font-size: 1.08rem;
   font-weight: 900;
+  justify-content: flex-start;
   line-height: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.hud__item--coins .hud__value,
+.hud__item--world .hud__value {
+  justify-content: center;
+}
+
+.hud__item--time .hud__value {
+  justify-content: flex-end;
 }
 
 .hud__coin {
@@ -133,15 +150,36 @@ button {
   border: 2px solid #ffffff;
   border-radius: 50%;
   background:
-    linear-gradient(90deg, transparent 42%, rgba(255, 255, 255, 0.72) 43%, rgba(255, 255, 255, 0.72) 57%, transparent 58%),
+    linear-gradient(90deg, transparent 41%, rgba(255, 255, 255, 0.82) 42%, rgba(255, 255, 255, 0.82) 58%, transparent 59%),
     #f5c84b;
   box-shadow: 2px 2px 0 var(--ui-shadow);
+  transform: translateY(1px);
 }
 
 #hud-time.is-warning {
   display: inline-block;
   color: #ff6b3a;
   animation: time-warning-pulse 0.32s steps(2, end) infinite;
+}
+
+@media (max-width: 560px) {
+  .hud {
+    gap: 4px;
+    padding: 9px 12px 28px;
+  }
+
+  .hud__label {
+    font-size: 0.62rem;
+  }
+
+  .hud__value {
+    gap: 2px;
+    font-size: 0.82rem;
+  }
+
+  .hud__coin {
+    border-width: 1px;
+  }
 }
 
 @keyframes time-warning-pulse {
