@@ -211,6 +211,9 @@ const LIFE_LOSS_FALL_DISTANCE = 230;
 const LIFE_LOSS_HOP_DURATION = 260;
 const LIFE_LOSS_FALL_DURATION = 620;
 const CAMERA_LEAD_X = 260;
+const SKY_ROUTE_CAMERA_PLAYER_SCREEN_Y = 160;
+const SKY_ROUTE_CAMERA_RETURN_SCREEN_Y = 280;
+const SKY_ROUTE_CAMERA_LERP = 0.18;
 const PLAYER_SCREEN_LEFT_PADDING = 18;
 const GUARDIAN_FIREBALL_SPEED = 185;
 const GUARDIAN_FIREBALL_COOLDOWN = 1450;
@@ -308,6 +311,7 @@ export class GameScene extends Phaser.Scene {
   private wasOnGround = false;
   private previousPlayerVelocityY = 0;
   private forwardCameraScrollX = 0;
+  private skyRouteCameraActive = false;
   private bonusBlockFrame = -1;
   private coinFrame = -1;
   private audioContext?: AudioContext;
@@ -374,6 +378,7 @@ export class GameScene extends Phaser.Scene {
     this.stompChain = 0;
     this.starChain = 0;
     this.forwardCameraScrollX = 0;
+    this.skyRouteCameraActive = false;
     this.fortressBridgePieces = [];
     this.fortressSwitch = undefined;
     this.balanceLiftPairs = [];
@@ -1891,6 +1896,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.isClimbingVine = true;
+    this.skyRouteCameraActive = true;
     this.isCrouching = false;
     body.allowGravity = false;
     body.setGravityY(0);
@@ -2142,6 +2148,28 @@ export class GameScene extends Phaser.Scene {
     return Math.max(0, this.level.height * TILE_SIZE - camera.height);
   }
 
+  private getTargetCameraScrollY(camera: Phaser.Cameras.Scene2D.Camera): number {
+    const baseScrollY = this.getClassicCameraScrollY(camera);
+    if (baseScrollY <= 0) {
+      this.skyRouteCameraActive = false;
+      return 0;
+    }
+
+    if (
+      this.skyRouteCameraActive &&
+      !this.isClimbingVine &&
+      this.player.y > baseScrollY + SKY_ROUTE_CAMERA_RETURN_SCREEN_Y
+    ) {
+      this.skyRouteCameraActive = false;
+    }
+
+    if (!this.skyRouteCameraActive) {
+      return baseScrollY;
+    }
+
+    return Phaser.Math.Clamp(this.player.y - SKY_ROUTE_CAMERA_PLAYER_SCREEN_Y, 0, baseScrollY);
+  }
+
   private updateSideScrollingCamera(): void {
     if (this.isConduitTransitioning) {
       return;
@@ -2150,9 +2178,14 @@ export class GameScene extends Phaser.Scene {
     const camera = this.cameras.main;
     const maxScrollX = Math.max(0, this.level.width * TILE_SIZE - camera.width);
     const desiredScrollX = Phaser.Math.Clamp(this.player.x - CAMERA_LEAD_X, 0, maxScrollX);
+    const targetScrollY = this.getTargetCameraScrollY(camera);
+    const nextScrollY =
+      Math.abs(camera.scrollY - targetScrollY) <= 0.5
+        ? targetScrollY
+        : Phaser.Math.Linear(camera.scrollY, targetScrollY, SKY_ROUTE_CAMERA_LERP);
 
     this.forwardCameraScrollX = Math.max(this.forwardCameraScrollX, desiredScrollX);
-    camera.setScroll(this.forwardCameraScrollX, this.getClassicCameraScrollY(camera));
+    camera.setScroll(this.forwardCameraScrollX, nextScrollY);
     this.clampPlayerToCameraLeft();
   }
 
