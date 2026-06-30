@@ -227,6 +227,7 @@ const MULTI_COIN_BLOCK_WINDOW = 6500;
 const BLOCK_BUMP_SCORE = 100;
 const STOMP_SCORE_TABLE = [100, 200, 400, 800, 1000, 2000, 4000, 8000];
 const SHELL_SCORE_TABLE = [200, 400, 800, 1000, 2000, 4000, 8000];
+const STAR_SCORE_TABLE = [200, 400, 800, 1000, 2000, 4000, 8000];
 const SHELL_SOLID_HIT_COOLDOWN = 140;
 const SHELL_WAKE_WARNING_DELAY = 3600;
 const SHELL_WAKE_DELAY = 5200;
@@ -298,6 +299,7 @@ export class GameScene extends Phaser.Scene {
   private pausedAt = 0;
   private didTimeWarning = false;
   private stompChain = 0;
+  private starChain = 0;
   private wasOnGround = false;
   private previousPlayerVelocityY = 0;
   private forwardCameraScrollX = 0;
@@ -365,6 +367,7 @@ export class GameScene extends Phaser.Scene {
     this.wasOnGround = false;
     this.previousPlayerVelocityY = 0;
     this.stompChain = 0;
+    this.starChain = 0;
     this.forwardCameraScrollX = 0;
     this.fortressBridgePieces = [];
     this.fortressSwitch = undefined;
@@ -2894,9 +2897,16 @@ export class GameScene extends Phaser.Scene {
         this.stopCourseMusic(false);
         this.startStarMusic();
       }
-    } else if (this.starMusicEvent) {
-      this.stopStarMusic(true);
-      this.startCourseMusic();
+    } else {
+      if (this.starPowerUntil > 0) {
+        this.starPowerUntil = 0;
+        this.starChain = 0;
+      }
+
+      if (this.starMusicEvent) {
+        this.stopStarMusic(true);
+        this.startCourseMusic();
+      }
     }
 
     this.refreshPlayerTint(time);
@@ -2930,6 +2940,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private startStarPower(): void {
+    this.starChain = 0;
     this.starPowerUntil = this.time.now + STAR_POWER_DURATION;
     this.stopCourseMusic(false);
     this.stopStarMusic(true);
@@ -3520,8 +3531,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (this.hasStarPower()) {
-      this.defeatEnemy(enemy, 200, 0xfff08a);
-      this.cameras.main.shake(45, 0.0012);
+      this.defeatEnemyWithStar(enemy);
       return;
     }
 
@@ -3562,7 +3572,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (this.hasStarPower()) {
-      this.defeatCannonShot(shot, 200, 0xfff08a);
+      this.spawnSparkBurst(shot.x, shot.y);
+      this.defeatCannonShot(shot, this.nextStarReward(), 0xfff08a);
       return;
     }
 
@@ -3656,6 +3667,19 @@ export class GameScene extends Phaser.Scene {
     const score = this.stompChain >= STOMP_SCORE_TABLE.length ? '1up' : STOMP_SCORE_TABLE[this.stompChain];
     this.stompChain += 1;
     return score;
+  }
+
+  private nextStarReward(): ComboReward {
+    const score = this.starChain >= STAR_SCORE_TABLE.length ? '1up' : STAR_SCORE_TABLE[this.starChain];
+    this.starChain += 1;
+    return score;
+  }
+
+  private defeatEnemyWithStar(enemy: Phaser.Physics.Arcade.Sprite): void {
+    this.spawnSparkBurst(enemy.x, enemy.y);
+    this.defeatEnemy(enemy, this.nextStarReward(), 0xfff08a);
+    this.cameras.main.shake(45, 0.0012);
+    this.playTone(1567.98, 0.045);
   }
 
   private tuckEnemyIntoShell(enemy: Phaser.Physics.Arcade.Sprite, reward: ComboReward = 100): void {
@@ -4142,6 +4166,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.stompChain = 0;
+    this.starChain = 0;
 
     if (this.hasSpark && reason !== 'Time' && reason !== 'Mind the gap') {
       this.hasSpark = false;
@@ -4169,6 +4194,7 @@ export class GameScene extends Phaser.Scene {
     this.isPowered = false;
     this.hasSpark = false;
     this.starPowerUntil = 0;
+    this.starChain = 0;
     this.invulnerableUntil = this.time.now + LIFE_LOSS_HOP_DURATION + LIFE_LOSS_FALL_DURATION + 500;
     this.player.setVelocity(0, 0);
     this.player.setAcceleration(0, 0);
@@ -4282,6 +4308,7 @@ export class GameScene extends Phaser.Scene {
     this.isFinished = true;
     this.stopGameplayMusic(true);
     this.stompChain = 0;
+    this.starChain = 0;
     this.hud.setTimeWarning(false);
     const flagBonus = this.calculateFlagBonus();
     const flagFireworkCount = this.getFlagFireworkCount(this.runState.time);
@@ -4314,6 +4341,7 @@ export class GameScene extends Phaser.Scene {
     this.isFinished = true;
     this.stopGameplayMusic(true);
     this.stompChain = 0;
+    this.starChain = 0;
     this.hud.setTimeWarning(false);
     this.cannonShots.clear(true, true);
     this.enemyProjectiles.clear(true, true);
@@ -4337,6 +4365,7 @@ export class GameScene extends Phaser.Scene {
     this.isFinished = true;
     this.stopGameplayMusic(true);
     this.stompChain = 0;
+    this.starChain = 0;
     this.hud.setTimeWarning(false);
     this.guardianFireballs.clear(true, true);
     this.cannonShots.clear(true, true);
