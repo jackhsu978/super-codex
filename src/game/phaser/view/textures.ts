@@ -272,13 +272,11 @@ export const ensureGeneratedTextures = (scene: Phaser.Scene): void => {
   });
 
   makeTexture(scene, 'tile-cloud', 32, 32, (g) => {
-    g.fillStyle(0xdff8ff, 1).fillEllipse(8, 18, 18, 15);
-    g.fillEllipse(18, 13, 24, 22);
-    g.fillEllipse(27, 19, 18, 14);
-    g.fillStyle(0xffffff, 1).fillEllipse(9, 15, 15, 11);
-    g.fillEllipse(19, 10, 18, 16);
-    g.fillEllipse(26, 16, 14, 10);
-    g.fillStyle(0x91d7ee, 0.75).fillRect(4, 22, 24, 4);
+    g.fillStyle(0x84dff5, 1).fillRect(4, 12, 24, 14).fillRect(8, 8, 16, 18);
+    g.fillStyle(0xffffff, 1).fillRect(3, 10, 26, 13).fillRect(8, 6, 17, 17);
+    g.fillStyle(0xd8f8ff, 1).fillRect(5, 22, 22, 4).fillRect(10, 6, 10, 3);
+    g.fillStyle(0x26354d, 1).fillRect(12, 14, 3, 7).fillRect(21, 14, 3, 7);
+    g.fillStyle(0xffffff, 0.6).fillRect(12, 14, 1, 1).fillRect(21, 14, 1, 1);
   });
 
   makeTexture(scene, 'vine', 20, 32, (g) => {

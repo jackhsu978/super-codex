@@ -700,6 +700,7 @@ export class GameScene extends Phaser.Scene {
     this.fillBlockRects(graphics, blocks, x, y, unit);
     graphics.fillStyle(0xd8f8ff, 1);
     this.fillBlockRects(graphics, [[1, 3, 7, 1]], x, y, unit);
+    this.drawSceneryEyes(graphics, x, y, unit, 3.1, 5.45, 2.15, 0x26354d);
   }
 
   private drawSteppedHill(graphics: Phaser.GameObjects.Graphics, x: number, baseY: number, width: number, height: number): void {
@@ -736,13 +737,15 @@ export class GameScene extends Phaser.Scene {
       [4, 0, 2, 1],
       [2, 2, 4, 1]
     ];
+    const topY = baseY - unit * 3;
 
     graphics.fillStyle(0x267a3b, 1);
     this.fillBlockRects(graphics, blocks, x + unit, baseY - unit * 2, unit);
     graphics.fillStyle(0x4fc35f, 1);
-    this.fillBlockRects(graphics, blocks, x, baseY - unit * 3, unit);
+    this.fillBlockRects(graphics, blocks, x, topY, unit);
     graphics.fillStyle(0x8aef7f, 1);
-    this.fillBlockRects(graphics, [[1, 1, 1, 1], [4, 1, 1, 1]], x, baseY - unit * 3, unit);
+    this.fillBlockRects(graphics, [[1, 1, 1, 1], [4, 1, 1, 1]], x, topY, unit);
+    this.drawSceneryEyes(graphics, x, topY, unit, 2.15, 4.35, 1.15, 0x174827);
   }
 
   private fillBlockRects(
@@ -759,6 +762,29 @@ export class GameScene extends Phaser.Scene {
         Math.round(blockWidth * unit),
         Math.round(blockHeight * unit)
       );
+    }
+  }
+
+  private drawSceneryEyes(
+    graphics: Phaser.GameObjects.Graphics,
+    x: number,
+    y: number,
+    unit: number,
+    leftColumn: number,
+    rightColumn: number,
+    row: number,
+    color: number
+  ): void {
+    const eyeWidth = Math.max(2, Math.round(unit * 0.32));
+    const eyeHeight = Math.max(4, Math.round(unit * 0.74));
+    const eyeY = Math.round(y + row * unit);
+
+    graphics.fillStyle(color, 1);
+    for (const column of [leftColumn, rightColumn]) {
+      const eyeX = Math.round(x + column * unit);
+      graphics.fillRect(eyeX, eyeY, eyeWidth, eyeHeight);
+      graphics.fillStyle(0xffffff, 0.54).fillRect(eyeX, eyeY, Math.max(1, Math.floor(eyeWidth / 2)), 1);
+      graphics.fillStyle(color, 1);
     }
   }
 
