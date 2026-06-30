@@ -141,6 +141,9 @@ const PLAYER_FALL_EXTRA_GRAVITY_Y = 520;
 const PLAYER_MAX_FALL_SPEED = 860;
 const STOMP_BOUNCE_VELOCITY = -330;
 const STOMP_HELD_BOUNCE_VELOCITY = -420;
+const STOMP_CROSSING_TOLERANCE = 6;
+const STOMP_FEET_MAX_DEPTH = 14;
+const STOMP_HORIZONTAL_INSET = 8;
 const SPRINGBOARD_BOUNCE_VELOCITY = -820;
 const SPRINGBOARD_HELD_BOUNCE_VELOCITY = -900;
 const VINE_CLIMB_SPEED = 118;
@@ -3551,12 +3554,16 @@ export class GameScene extends Phaser.Scene {
 
   private isStompCollision(body: Phaser.Physics.Arcade.Body, enemyBody: Phaser.Physics.Arcade.Body): boolean {
     const previousBottom = body.prev.y + body.height;
-    const crossedEnemyTop = previousBottom <= enemyBody.top + 10;
-    const feetNearEnemyTop = body.bottom <= enemyBody.top + 22;
-    const horizontalOverlap = body.right > enemyBody.left + 6 && body.left < enemyBody.right - 6;
-    const notMovingUp = body.velocity.y >= -20;
+    const crossedEnemyTop = previousBottom <= enemyBody.top + STOMP_CROSSING_TOLERANCE;
+    const feetStillOnTop = body.bottom <= enemyBody.top + STOMP_FEET_MAX_DEPTH;
+    const playerCenterX = (body.left + body.right) / 2;
+    const horizontalInset = Math.min(STOMP_HORIZONTAL_INSET, Math.max(2, enemyBody.width * 0.3));
+    const playerCenteredOverEnemy =
+      playerCenterX > enemyBody.left + horizontalInset && playerCenterX < enemyBody.right - horizontalInset;
+    const horizontalOverlap = body.right > enemyBody.left + horizontalInset && body.left < enemyBody.right - horizontalInset;
+    const descendingOntoEnemy = body.velocity.y >= 0 && body.bottom > previousBottom;
 
-    return horizontalOverlap && notMovingUp && crossedEnemyTop && feetNearEnemyTop;
+    return descendingOntoEnemy && crossedEnemyTop && feetStillOnTop && horizontalOverlap && playerCenteredOverEnemy;
   }
 
   private stompEnemy(enemy: Phaser.Physics.Arcade.Sprite): void {

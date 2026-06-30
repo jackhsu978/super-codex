@@ -21,6 +21,17 @@ try {
   const { LEVELS } = await import(pathToFileURL(tempModulePath));
   const failures = [];
 
+  const checkpointEnemySafeX = 7;
+  const checkpointEnemySafeY = 2;
+  const checkpointProjectileSafeX = 14;
+  const checkpointProjectileSafeY = 2;
+  const checkpointPointBlankDangerX = 3;
+  const checkpointFirebarBuffer = 2;
+  const checkpointLavaSafeX = 4;
+  const checkpointLavaSafeY = 3;
+  const checkpointLiftSafeX = 4;
+  const checkpointLiftSafeY = 3;
+
   const expandRect = (rect) => {
     const tiles = [];
     for (let dx = 0; dx < rect.w; dx += 1) {
@@ -32,15 +43,17 @@ try {
   };
 
   const formatPoint = (point) => `${point.x},${point.y}`;
+  const tileDistance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  const withinBox = (a, b, safeX, safeY) => Math.abs(a.x - b.x) <= safeX && Math.abs(a.y - b.y) <= safeY;
+  const isConduitTile = (tile) => tile.kind === 'conduitTop' || tile.kind === 'conduitBody';
+  const overlapsConduitClearance = (coin, rect) =>
+    coin.x >= rect.x && coin.x < rect.x + rect.w && coin.y >= rect.y - 1 && coin.y < rect.y + rect.h;
 
   for (const level of LEVELS) {
     const solidTiles = level.solids.flatMap(expandRect);
     const solidTileKeys = new Set(solidTiles.map(formatPoint));
-    const conduitTileKeys = new Set(
-      solidTiles
-        .filter((tile) => tile.kind === 'conduitTop' || tile.kind === 'conduitBody')
-        .map(formatPoint)
-    );
+    const conduitRects = level.solids.filter(isConduitTile);
+    const conduitTileKeys = new Set(solidTiles.filter(isConduitTile).map(formatPoint));
     const hazardTileKeys = new Set(
       level.hazards.flatMap((hazard) =>
         Array.from({ length: hazard.w }, (_, dx) => `${hazard.x + dx},${hazard.y}`)
@@ -48,8 +61,13 @@ try {
     );
 
     for (const coin of level.coins) {
-      if (conduitTileKeys.has(formatPoint(coin))) {
-        failures.push(`${level.world}: coin at ${formatPoint(coin)} is inside a conduit tile`);
+      const coinKey = formatPoint(coin);
+      if (solidTileKeys.has(coinKey)) {
+        failures.push(`${level.world}: coin at ${coinKey} is inside a solid tile`);
+      }
+
+      if (conduitTileKeys.has(coinKey) || conduitRects.some((rect) => overlapsConduitClearance(coin, rect))) {
+        failures.push(`${level.world}: coin at ${coinKey} appears inside a conduit or its mouth`);
       }
     }
 
@@ -73,8 +91,39 @@ try {
     }
 
     for (const enemy of level.enemies) {
-      if (Math.abs(enemy.x - checkpoint.x) <= 4 && Math.abs(enemy.y - checkpoint.y) <= 3) {
+      if (withinBox(enemy, checkpoint, checkpointEnemySafeX, checkpointEnemySafeY)) {
         failures.push(`${level.world}: checkpoint at ${formatPoint(checkpoint)} is too close to enemy at ${formatPoint(enemy)}`);
+      }
+    }
+
+    for (const cannon of level.cannons) {
+      const distance = Math.abs(cannon.x - checkpoint.x);
+      const yDistance = Math.abs(cannon.y - checkpoint.y);
+      const facesCheckpoint =
+        cannon.direction === undefined ? true : cannon.direction < 0 ? checkpoint.x < cannon.x : checkpoint.x > cannon.x;
+
+      if (distance <= checkpointPointBlankDangerX && yDistance <= checkpointProjectileSafeY) {
+        failures.push(`${level.world}: checkpoint at ${formatPoint(checkpoint)} is point-blank beside cannon at ${formatPoint(cannon)}`);
+      } else if (facesCheckpoint && distance <= checkpointProjectileSafeX && yDistance <= checkpointProjectileSafeY) {
+        failures.push(`${level.world}: checkpoint at ${formatPoint(checkpoint)} is in cannon line of fire from ${formatPoint(cannon)}`);
+      }
+    }
+
+    for (const firebar of level.firebars) {
+      if (tileDistance(firebar, checkpoint) <= firebar.length + checkpointFirebarBuffer) {
+        failures.push(`${level.world}: checkpoint at ${formatPoint(checkpoint)} is inside firebar reach from ${formatPoint(firebar)}`);
+      }
+    }
+
+    for (const bubble of level.lavaBubbles) {
+      if (withinBox(bubble, checkpoint, checkpointLavaSafeX, checkpointLavaSafeY)) {
+        failures.push(`${level.world}: checkpoint at ${formatPoint(checkpoint)} is too close to lava bubble at ${formatPoint(bubble)}`);
+      }
+    }
+
+    for (const lift of level.fallingLifts) {
+      if (withinBox(lift, checkpoint, checkpointLiftSafeX, checkpointLiftSafeY)) {
+        failures.push(`${level.world}: checkpoint at ${formatPoint(checkpoint)} is too close to falling lift at ${formatPoint(lift)}`);
       }
     }
   }

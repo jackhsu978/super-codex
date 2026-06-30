@@ -256,7 +256,7 @@ const WORLD_1_1: LevelDefinition = {
     { x: 47, y: 8 },
     { x: 74, y: 13, kind: 'pipePlant' },
     { x: 70, y: 10 },
-    { x: 98, y: 15 },
+    { x: 112, y: 15 },
     { x: 132, y: 14, kind: 'pipePlant' },
     { x: 122, y: 12, kind: 'shellback' },
     { x: 137, y: 15 }
@@ -474,7 +474,7 @@ const WORLD_1_3: LevelDefinition = {
     ...line(106, 6, 6),
     ...line(132, 10, 5),
     ...arc(143, 6),
-    ...line(172, 8, 6)
+    ...line(172, 8, 5)
   ],
   enemies: [
     { x: 16, y: 15 },
@@ -529,7 +529,7 @@ const WORLD_1_4: LevelDefinition = {
   height: 18,
   timeLimit: 300,
   spawn: { x: 3, y: 14 },
-  checkpoint: { x: 98, y: 14 },
+  checkpoint: { x: 106, y: 14 },
   goal: { x: 158, y: 6 },
   solids: [
     { x: 0, y: 16, w: 20, h: 2, kind: 'ground' },
