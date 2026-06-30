@@ -31,6 +31,10 @@ try {
   const checkpointLavaSafeY = 3;
   const checkpointLiftSafeX = 4;
   const checkpointLiftSafeY = 3;
+  const checkpointMovingPlatformSafeX = 4;
+  const checkpointMovingPlatformSafeY = 3;
+  const checkpointClearRadiusX = 1;
+  const checkpointClearHeight = 2;
 
   const expandRect = (rect) => {
     const tiles = [];
@@ -46,8 +50,8 @@ try {
   const tileDistance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const withinBox = (a, b, safeX, safeY) => Math.abs(a.x - b.x) <= safeX && Math.abs(a.y - b.y) <= safeY;
   const isConduitTile = (tile) => tile.kind === 'conduitTop' || tile.kind === 'conduitBody';
-  const overlapsConduitClearance = (coin, rect) =>
-    coin.x >= rect.x && coin.x < rect.x + rect.w && coin.y >= rect.y - 1 && coin.y < rect.y + rect.h;
+  const overlapsConduitClearance = (point, rect) =>
+    point.x >= rect.x && point.x < rect.x + rect.w && point.y >= rect.y - 1 && point.y < rect.y + rect.h;
 
   for (const level of LEVELS) {
     const solidTiles = level.solids.flatMap(expandRect);
@@ -71,6 +75,18 @@ try {
       }
     }
 
+    const coinBlockGroups = [
+      ['coin block', level.coinBlocks],
+      ['multi-coin block', level.multiCoinBlocks]
+    ];
+    for (const [label, points] of coinBlockGroups) {
+      for (const point of points) {
+        if (conduitRects.some((rect) => overlapsConduitClearance(point, rect))) {
+          failures.push(`${level.world}: ${label} at ${formatPoint(point)} would spawn coins inside a conduit or its mouth`);
+        }
+      }
+    }
+
     if (!level.checkpoint) {
       continue;
     }
@@ -79,6 +95,15 @@ try {
     const checkpointSupportKey = `${checkpoint.x},${checkpoint.y + 2}`;
     if (!solidTileKeys.has(checkpointSupportKey)) {
       failures.push(`${level.world}: checkpoint at ${formatPoint(checkpoint)} has no stable support at ${checkpointSupportKey}`);
+    }
+
+    for (let x = checkpoint.x - checkpointClearRadiusX; x <= checkpoint.x + checkpointClearRadiusX; x += 1) {
+      for (let y = checkpoint.y; y < checkpoint.y + checkpointClearHeight; y += 1) {
+        const key = `${x},${y}`;
+        if (solidTileKeys.has(key)) {
+          failures.push(`${level.world}: checkpoint at ${formatPoint(checkpoint)} has blocked player clearance at ${key}`);
+        }
+      }
     }
 
     for (let x = checkpoint.x - 1; x <= checkpoint.x + 1; x += 1) {
@@ -124,6 +149,12 @@ try {
     for (const lift of level.fallingLifts) {
       if (withinBox(lift, checkpoint, checkpointLiftSafeX, checkpointLiftSafeY)) {
         failures.push(`${level.world}: checkpoint at ${formatPoint(checkpoint)} is too close to falling lift at ${formatPoint(lift)}`);
+      }
+    }
+
+    for (const platform of level.movingPlatforms) {
+      if (withinBox(platform, checkpoint, checkpointMovingPlatformSafeX, checkpointMovingPlatformSafeY)) {
+        failures.push(`${level.world}: checkpoint at ${formatPoint(checkpoint)} is too close to moving platform at ${formatPoint(platform)}`);
       }
     }
   }

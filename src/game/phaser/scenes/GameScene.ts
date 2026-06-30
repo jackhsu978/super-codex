@@ -144,6 +144,9 @@ const STOMP_HELD_BOUNCE_VELOCITY = -420;
 const STOMP_CROSSING_TOLERANCE = 6;
 const STOMP_FEET_MAX_DEPTH = 14;
 const STOMP_HORIZONTAL_INSET = 8;
+const STOMP_MIN_DROP_PIXELS = 0.8;
+const STOMP_MIN_DESCENT_VELOCITY = 24;
+const STOMP_SIDE_CONTACT_MAX_DEPTH = 8;
 const SPRINGBOARD_BOUNCE_VELOCITY = -820;
 const SPRINGBOARD_HELD_BOUNCE_VELOCITY = -900;
 const VINE_CLIMB_SPEED = 118;
@@ -226,6 +229,8 @@ const MULTI_COIN_BLOCK_LIMIT = 8;
 const MULTI_COIN_BLOCK_WINDOW = 6500;
 const BLOCK_BUMP_SCORE = 100;
 const STOMP_SCORE_TABLE = [100, 200, 400, 800, 1000, 2000, 4000, 8000];
+const STOMPED_ENEMY_HOLD_MS = 220;
+const STOMPED_ENEMY_FADE_MS = 150;
 const SHELL_SCORE_TABLE = [200, 400, 800, 1000, 2000, 4000, 8000];
 const STAR_SCORE_TABLE = [200, 400, 800, 1000, 2000, 4000, 8000];
 const SHELL_SOLID_HIT_COOLDOWN = 140;
@@ -948,6 +953,10 @@ export class GameScene extends Phaser.Scene {
     }
 
     for (const coin of this.level.coins) {
+      if (this.isCoinInsideConduitClearance(coin)) {
+        continue;
+      }
+
       const sprite = this.coins.create(coin.x * TILE_SIZE + TILE_SIZE / 2, coin.y * TILE_SIZE + TILE_SIZE / 2, 'coin');
       sprite.setData('baseY', sprite.y);
       sprite.refreshBody();
@@ -1004,6 +1013,17 @@ export class GameScene extends Phaser.Scene {
         this.createWarpLabel(link);
       }
     }
+  }
+
+  private isCoinInsideConduitClearance(coin: Point): boolean {
+    return this.level.solids.some(
+      (rect) =>
+        (rect.kind === 'conduitTop' || rect.kind === 'conduitBody') &&
+        coin.x >= rect.x &&
+        coin.x < rect.x + rect.w &&
+        coin.y >= rect.y - 1 &&
+        coin.y < rect.y + rect.h
+    );
   }
 
   private createSpringboard(point: Point): void {
@@ -3624,6 +3644,7 @@ export class GameScene extends Phaser.Scene {
 
   private isStompCollision(body: Phaser.Physics.Arcade.Body, enemyBody: Phaser.Physics.Arcade.Body): boolean {
     const previousBottom = body.prev.y + body.height;
+    const verticalDrop = body.bottom - previousBottom;
     const crossedEnemyTop = previousBottom <= enemyBody.top + STOMP_CROSSING_TOLERANCE;
     const feetStillOnTop = body.bottom <= enemyBody.top + STOMP_FEET_MAX_DEPTH;
     const playerCenterX = (body.left + body.right) / 2;
@@ -3631,9 +3652,22 @@ export class GameScene extends Phaser.Scene {
     const playerCenteredOverEnemy =
       playerCenterX > enemyBody.left + horizontalInset && playerCenterX < enemyBody.right - horizontalInset;
     const horizontalOverlap = body.right > enemyBody.left + horizontalInset && body.left < enemyBody.right - horizontalInset;
-    const descendingOntoEnemy = body.velocity.y >= 0 && body.bottom > previousBottom;
+    const hasDownwardMomentum =
+      verticalDrop >= STOMP_MIN_DROP_PIXELS ||
+      body.velocity.y >= STOMP_MIN_DESCENT_VELOCITY ||
+      this.previousPlayerVelocityY >= STOMP_MIN_DESCENT_VELOCITY;
+    const sideContactTooDeep =
+      (body.touching.left || body.touching.right || body.blocked.left || body.blocked.right) &&
+      body.bottom > enemyBody.top + STOMP_SIDE_CONTACT_MAX_DEPTH;
 
-    return descendingOntoEnemy && crossedEnemyTop && feetStillOnTop && horizontalOverlap && playerCenteredOverEnemy;
+    return (
+      hasDownwardMomentum &&
+      !sideContactTooDeep &&
+      crossedEnemyTop &&
+      feetStillOnTop &&
+      horizontalOverlap &&
+      playerCenteredOverEnemy
+    );
   }
 
   private stompEnemy(enemy: Phaser.Physics.Arcade.Sprite): void {
@@ -3845,7 +3879,8 @@ export class GameScene extends Phaser.Scene {
       scaleY: crushed ? 1 : 0.35,
       alpha: 0,
       y: enemy.y + (crushed ? 5 : 8),
-      duration: crushed ? 230 : 150,
+      delay: crushed ? STOMPED_ENEMY_HOLD_MS : 0,
+      duration: crushed ? STOMPED_ENEMY_FADE_MS : 150,
       ease: 'Quad.out',
       onComplete: () => {
         enemy.setOrigin(0.5, 0.5);
