@@ -449,10 +449,11 @@ export const ensureGeneratedTextures = (scene: Phaser.Scene): void => {
   });
 
   makeTexture(scene, 'coin', 18, 18, (g) => {
-    g.fillStyle(0x7a3f18, 1).fillRect(4, 1, 10, 2).fillRect(2, 3, 14, 12).fillRect(4, 15, 10, 2);
-    g.fillStyle(0xf0a42f, 1).fillRect(5, 2, 8, 2).fillRect(4, 4, 10, 10).fillRect(5, 14, 8, 2);
-    g.fillStyle(0xffe66d, 1).fillRect(7, 3, 5, 12).fillRect(5, 6, 2, 5);
-    g.fillStyle(0xfffbca, 1).fillRect(7, 4, 2, 9).fillRect(10, 3, 1, 3);
+    g.fillStyle(0x6a3512, 1).fillRect(5, 0, 8, 2).fillRect(3, 2, 12, 14).fillRect(5, 16, 8, 2);
+    g.fillStyle(0xd98219, 1).fillRect(6, 1, 6, 2).fillRect(5, 3, 8, 12).fillRect(6, 15, 6, 2);
+    g.fillStyle(0xffcf3d, 1).fillRect(7, 2, 5, 13).fillRect(5, 6, 2, 6);
+    g.fillStyle(0xffff9d, 1).fillRect(8, 3, 2, 10).fillRect(11, 4, 1, 4);
+    g.fillStyle(0x8a4818, 0.8).fillRect(12, 4, 1, 10);
   });
 
   makeTexture(scene, 'coin-mid', 18, 18, (g) => {
@@ -528,31 +529,33 @@ export const ensureGeneratedTextures = (scene: Phaser.Scene): void => {
   });
 
   makeTexture(scene, 'enemy', 28, 24, (g) => {
-    g.fillStyle(0x111927, 1).fillRect(5, 20, 7, 4).fillRect(17, 20, 7, 4);
-    g.fillStyle(0x7f3e35, 1).fillEllipse(14, 12, 26, 21);
-    g.fillStyle(0xb96e4b, 1).fillEllipse(14, 8, 23, 14);
-    g.fillStyle(0xe0a178, 1).fillRect(7, 11, 15, 8);
-    g.fillStyle(0x111927, 1).fillRect(9, 12, 3, 4).fillRect(17, 12, 3, 4);
-    g.fillStyle(0x5a2b25, 1).fillRect(6, 18, 17, 2);
-    g.fillStyle(0xffd49a, 1).fillRect(7, 5, 5, 2).fillRect(17, 5, 4, 2);
+    g.fillStyle(0x1a0f0a, 1).fillRect(3, 20, 8, 4).fillRect(17, 20, 8, 4);
+    g.fillStyle(0x5f2a16, 1).fillRect(6, 17, 16, 4);
+    g.fillStyle(0x8f4a22, 1).fillRect(5, 11, 18, 9).fillRect(8, 7, 12, 5);
+    g.fillStyle(0xc97938, 1).fillRect(4, 9, 20, 9).fillRect(7, 5, 14, 5).fillRect(11, 3, 6, 2);
+    g.fillStyle(0xe4a466, 1).fillRect(7, 12, 14, 6).fillRect(9, 9, 10, 3);
+    g.fillStyle(0x1a0f0a, 1).fillRect(8, 12, 3, 4).fillRect(17, 12, 3, 4);
+    g.fillRect(6, 18, 16, 2).fillRect(9, 9, 5, 2).fillRect(15, 9, 5, 2);
+    g.fillStyle(0xffd49a, 1).fillRect(9, 5, 4, 2).fillRect(16, 5, 3, 2);
   });
 
   makeTexture(scene, 'enemy-step', 28, 24, (g) => {
-    g.fillStyle(0x111927, 1).fillRect(3, 20, 8, 4).fillRect(19, 21, 6, 3);
-    g.fillStyle(0x6d352f, 1).fillEllipse(14, 12, 26, 21);
-    g.fillStyle(0xc77952, 1).fillEllipse(14, 8, 23, 14);
-    g.fillStyle(0xe0a178, 1).fillRect(7, 11, 15, 8);
-    g.fillStyle(0x111927, 1).fillRect(8, 12, 3, 4).fillRect(16, 12, 3, 4);
-    g.fillStyle(0x5a2b25, 1).fillRect(6, 18, 17, 2);
-    g.fillStyle(0xffd49a, 1).fillRect(7, 5, 5, 2).fillRect(17, 5, 4, 2);
+    g.fillStyle(0x1a0f0a, 1).fillRect(2, 20, 9, 4).fillRect(19, 21, 7, 3);
+    g.fillStyle(0x5a2614, 1).fillRect(6, 17, 16, 4);
+    g.fillStyle(0x88451f, 1).fillRect(5, 11, 18, 9).fillRect(8, 7, 12, 5);
+    g.fillStyle(0xcf7d3c, 1).fillRect(4, 9, 20, 9).fillRect(7, 5, 14, 5).fillRect(11, 3, 6, 2);
+    g.fillStyle(0xe8aa6a, 1).fillRect(7, 12, 14, 6).fillRect(9, 9, 10, 3);
+    g.fillStyle(0x1a0f0a, 1).fillRect(8, 12, 3, 4).fillRect(17, 12, 3, 4);
+    g.fillRect(6, 18, 16, 2).fillRect(8, 9, 5, 2).fillRect(15, 9, 5, 2);
+    g.fillStyle(0xffd49a, 1).fillRect(9, 5, 4, 2).fillRect(16, 5, 3, 2);
   });
 
   makeTexture(scene, 'enemy-crushed', 28, 14, (g) => {
-    g.fillStyle(0x111927, 1).fillRect(4, 10, 20, 3);
-    g.fillStyle(0x6d352f, 1).fillEllipse(14, 8, 26, 10);
-    g.fillStyle(0xc77952, 1).fillEllipse(14, 5, 22, 7);
-    g.fillStyle(0xe0a178, 1).fillRect(6, 7, 17, 3);
-    g.fillStyle(0x111927, 1).fillRect(8, 7, 5, 1).fillRect(16, 7, 5, 1);
+    g.fillStyle(0x1a0f0a, 1).fillRect(4, 10, 20, 3);
+    g.fillStyle(0x6b3219, 1).fillRect(4, 6, 20, 5);
+    g.fillStyle(0xc9783a, 1).fillRect(5, 3, 18, 5).fillRect(8, 1, 12, 3);
+    g.fillStyle(0xe7aa6b, 1).fillRect(7, 7, 14, 3);
+    g.fillStyle(0x1a0f0a, 1).fillRect(8, 7, 5, 1).fillRect(16, 7, 5, 1);
   });
 
   makeTexture(scene, 'enemy-shellback', 30, 28, (g) => {

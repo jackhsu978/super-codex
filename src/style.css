@@ -74,10 +74,10 @@ button {
   z-index: 4;
   display: grid;
   width: 100%;
-  grid-template-columns: 1.35fr 0.68fr 0.74fr 0.58fr;
+  grid-template-columns: 1.26fr 0.62fr 0.72fr 0.58fr;
   align-items: start;
-  gap: 14px;
-  padding: 12px 30px 42px;
+  gap: 16px;
+  padding: 13px 32px 42px;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0));
   pointer-events: none;
 }
@@ -85,7 +85,7 @@ button {
 .hud__item {
   min-width: 0;
   color: var(--ui-ink);
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-family: "Courier New", "SFMono-Regular", Consolas, monospace;
   font-weight: 900;
   text-transform: uppercase;
   text-shadow:
@@ -96,7 +96,7 @@ button {
 .hud__label {
   display: block;
   color: var(--ui-ink);
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 900;
   letter-spacing: 0;
   line-height: 1;
@@ -118,8 +118,8 @@ button {
   gap: 4px;
   overflow: hidden;
   color: #ffffff;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  font-size: 1.02rem;
+  font-family: "Courier New", "SFMono-Regular", Consolas, monospace;
+  font-size: 1.08rem;
   font-weight: 900;
   line-height: 1;
   text-overflow: ellipsis;
