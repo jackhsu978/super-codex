@@ -94,6 +94,19 @@ type EnemyMode = 'walking' | 'shell' | 'sliding';
 type PipePlantState = 'hidden' | 'emerging' | 'shown' | 'retreating';
 type ComboReward = number | '1up';
 
+interface CourseMusicTheme {
+  melody: number[];
+  bass: number[];
+  stepMs: number;
+  hurryStepMs: number;
+  melodyDuration: number;
+  melodyDelay: number;
+  melodyVolume: number;
+  bassDuration: number;
+  bassVolume: number;
+  bassStride: number;
+}
+
 const PET_FRAME_WIDTH = 192;
 const PET_FRAME_HEIGHT = 208;
 const PET_SHEET_TEXTURE = 'codex-pet';
@@ -101,10 +114,57 @@ const PET_JUMP_FRAME = 34;
 const PET_CROUCH_FRAME = 0;
 const BONUS_BLOCK_FRAMES = ['tile-bonus', 'tile-bonus-bright', 'tile-bonus', 'tile-bonus-shadow'];
 const COIN_FRAMES = ['coin', 'coin-mid', 'coin-side', 'coin-mid'];
-const COURSE_MUSIC_NOTES = [523.25, 659.25, 783.99, 0, 698.46, 783.99, 880, 0, 659.25, 587.33, 523.25, 0, 587.33, 659.25, 523.25, 0];
-const COURSE_MUSIC_BASS = [130.81, 0, 196, 0, 174.61, 0, 196, 0];
-const COURSE_MUSIC_STEP_MS = 132;
-const COURSE_MUSIC_HURRY_STEP_MS = 96;
+const DEFAULT_COURSE_MUSIC_THEME: CourseMusicTheme = {
+  melody: [659.25, 783.99, 880, 0, 987.77, 880, 783.99, 0, 659.25, 783.99, 1046.5, 0, 987.77, 880, 783.99, 0],
+  bass: [130.81, 0, 196, 0, 174.61, 0, 196, 0],
+  stepMs: 128,
+  hurryStepMs: 92,
+  melodyDuration: 0.052,
+  melodyDelay: 0.014,
+  melodyVolume: 0.014,
+  bassDuration: 0.09,
+  bassVolume: 0.011,
+  bassStride: 2
+};
+const COURSE_MUSIC_THEMES: Record<string, CourseMusicTheme> = {
+  '1-1': DEFAULT_COURSE_MUSIC_THEME,
+  '1-2': {
+    melody: [392, 0, 369.99, 392, 0, 349.23, 329.63, 0, 293.66, 0, 311.13, 329.63, 0, 293.66, 261.63, 0, 392, 0, 415.3, 392, 0, 349.23, 311.13, 0],
+    bass: [146.83, 0, 110, 0, 138.59, 0, 98, 0],
+    stepMs: 156,
+    hurryStepMs: 112,
+    melodyDuration: 0.07,
+    melodyDelay: 0.018,
+    melodyVolume: 0.012,
+    bassDuration: 0.105,
+    bassVolume: 0.014,
+    bassStride: 2
+  },
+  '1-3': {
+    melody: [783.99, 987.77, 1174.66, 0, 987.77, 783.99, 659.25, 0, 880, 1046.5, 1318.51, 0, 1174.66, 1046.5, 880, 0],
+    bass: [196, 0, 246.94, 0, 220, 0, 261.63, 0],
+    stepMs: 108,
+    hurryStepMs: 78,
+    melodyDuration: 0.046,
+    melodyDelay: 0.01,
+    melodyVolume: 0.013,
+    bassDuration: 0.07,
+    bassVolume: 0.01,
+    bassStride: 2
+  },
+  '1-4': {
+    melody: [261.63, 0, 311.13, 0, 349.23, 0, 392, 0, 369.99, 349.23, 311.13, 0, 293.66, 0, 261.63, 0],
+    bass: [65.41, 0, 98, 0, 82.41, 0, 92.5, 0],
+    stepMs: 144,
+    hurryStepMs: 104,
+    melodyDuration: 0.074,
+    melodyDelay: 0.012,
+    melodyVolume: 0.012,
+    bassDuration: 0.12,
+    bassVolume: 0.015,
+    bassStride: 2
+  }
+};
 const STAR_MUSIC_NOTES = [783.99, 987.77, 1174.66, 1318.51, 1174.66, 987.77, 880, 1046.5, 1318.51, 1567.98, 1318.51, 1046.5];
 const STAR_MUSIC_BASS = [196, 0, 246.94, 0, 220, 0, 261.63, 0];
 const STAR_MUSIC_STEP_MS = 82;
@@ -146,11 +206,13 @@ const STOMP_FEET_MAX_DEPTH = 14;
 const STOMP_HORIZONTAL_INSET = 8;
 const STOMP_MIN_DROP_PIXELS = 0.8;
 const STOMP_MIN_DESCENT_VELOCITY = 24;
-const STOMP_SIDE_CONTACT_MAX_DEPTH = 8;
 const SPRINGBOARD_BOUNCE_VELOCITY = -820;
 const SPRINGBOARD_HELD_BOUNCE_VELOCITY = -900;
 const VINE_CLIMB_SPEED = 118;
 const VINE_CENTERING_SPEED = 100;
+const VINE_HORIZONTAL_SPEED = 132;
+const VINE_CLIMB_GRACE_PIXELS = 12;
+const CONDUIT_TOP_STAND_LIFT = 8;
 const SKID_DUST_SPEED = 145;
 const SKID_DUST_INTERVAL = 115;
 const LANDING_DUST_MIN_VELOCITY = 280;
@@ -162,6 +224,7 @@ const SKID_DECELERATION = 1460;
 const WALKING_ENEMY_SPEED = 55;
 const ENEMY_ACTIVATION_MARGIN = 112;
 const SHELL_SLIDE_SPEED = 330;
+const SHELL_PLAYER_SAFE_AFTER_KICK_MS = 280;
 const WING_SHELLBACK_HOP_VELOCITY = -330;
 const WING_SHELLBACK_HOP_INTERVAL = 880;
 const MOVING_LIFT_WIDTH = 96;
@@ -178,15 +241,16 @@ const FIREBAR_SEGMENT_SPACING = 21;
 const PIPE_PLANT_MOVE_DURATION = 520;
 const PIPE_PLANT_SHOWN_DURATION = 980;
 const PIPE_PLANT_HIDDEN_DURATION = 1120;
+const PIPE_PLANT_REEMERGE_SAFE_DELAY = 520;
 const PIPE_PLANT_PLAYER_SAFE_RADIUS = 74;
 const PROJECTILE_SPEED = 390;
 const PROJECTILE_BOUNCE_Y = -245;
-const PROJECTILE_MAX_GROUND_BOUNCES = 4;
 const PROJECTILE_BOUNCE_COOLDOWN = 90;
 const PROJECTILE_COOLDOWN = 320;
 const PROJECTILE_TTL = 3200;
 const MAX_PROJECTILES = 2;
 const STAR_POWER_DURATION = 10000;
+const STAR_SPARKLE_INTERVAL = 86;
 const CONDUIT_TRAVEL_PIXELS = 28;
 const FLAG_SLIDE_DURATION = 700;
 const FLAG_POLE_GRAB_OFFSET_X = 10;
@@ -204,8 +268,19 @@ const COURSE_TIMER_TICK_MS = 420;
 const TIME_WARNING_THRESHOLD = 100;
 const FLAG_FIREWORK_SCORE = 500;
 const FLAG_FIREWORK_DELAY = 360;
+const COURSE_CLEAR_FANFARE_DURATION_MS = 820;
+const COURSE_CLEAR_FANFARE_STEPS = [
+  { frequency: 523.25, duration: 0.075, delay: 0 },
+  { frequency: 659.25, duration: 0.075, delay: 0.09 },
+  { frequency: 783.99, duration: 0.09, delay: 0.18 },
+  { frequency: 1046.5, duration: 0.12, delay: 0.29 },
+  { frequency: 783.99, duration: 0.08, delay: 0.43 },
+  { frequency: 987.77, duration: 0.16, delay: 0.54 },
+  { frequency: 1318.51, duration: 0.2, delay: 0.68 }
+] as const;
 const DAMAGE_HITSTOP_DURATION = 260;
 const DAMAGE_INVULNERABLE_DURATION = 1750;
+const POWER_DOWN_FLICKER_STEP_MS = 54;
 const LIFE_LOSS_HOP_HEIGHT = 72;
 const LIFE_LOSS_FALL_DISTANCE = 230;
 const LIFE_LOSS_HOP_DURATION = 260;
@@ -234,6 +309,11 @@ const BLOCK_BUMP_SCORE = 100;
 const STOMP_SCORE_TABLE = [100, 200, 400, 800, 1000, 2000, 4000, 8000];
 const STOMPED_ENEMY_HOLD_MS = 220;
 const STOMPED_ENEMY_FADE_MS = 150;
+const LAUNCHED_ENEMY_RISE_MS = 135;
+const LAUNCHED_ENEMY_FALL_MS = 340;
+const LAUNCHED_ENEMY_RISE_PIXELS = 40;
+const LAUNCHED_ENEMY_FALL_PIXELS = 112;
+const LAUNCHED_ENEMY_DRIFT_PIXELS = 92;
 const SHELL_SCORE_TABLE = [200, 400, 800, 1000, 2000, 4000, 8000];
 const STAR_SCORE_TABLE = [200, 400, 800, 1000, 2000, 4000, 8000];
 const SHELL_SOLID_HIT_COOLDOWN = 140;
@@ -301,6 +381,7 @@ export class GameScene extends Phaser.Scene {
   private jumpBufferedUntil = 0;
   private invulnerableUntil = 0;
   private starPowerUntil = 0;
+  private nextStarSparkleAt = 0;
   private nextProjectileAt = 0;
   private nextSkidDustAt = 0;
   private runStartedAt = 0;
@@ -310,6 +391,7 @@ export class GameScene extends Phaser.Scene {
   private starChain = 0;
   private wasOnGround = false;
   private previousPlayerVelocityY = 0;
+  private jumpHeld = false;
   private forwardCameraScrollX = 0;
   private skyRouteCameraActive = false;
   private bonusBlockFrame = -1;
@@ -369,12 +451,14 @@ export class GameScene extends Phaser.Scene {
     this.jumpBufferedUntil = 0;
     this.invulnerableUntil = 0;
     this.starPowerUntil = 0;
+    this.nextStarSparkleAt = 0;
     this.nextProjectileAt = 0;
     this.nextSkidDustAt = 0;
     this.pausedAt = 0;
     this.didTimeWarning = false;
     this.wasOnGround = false;
     this.previousPlayerVelocityY = 0;
+    this.jumpHeld = false;
     this.stompChain = 0;
     this.starChain = 0;
     this.forwardCameraScrollX = 0;
@@ -408,6 +492,7 @@ export class GameScene extends Phaser.Scene {
 
     this.hud.setPrimaryAction(() => this.startRun());
     this.hud.setShortcutsCloseAction(() => this.closeShortcuts());
+    this.hud.setAdminAction(() => this.toggleAdminWorldSelect());
     this.registerKeyboardShortcuts();
 
     if (this.autoStart) {
@@ -422,7 +507,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(time: number, delta: number): void {
-    if (this.hud.isShortcutsOpen()) {
+    if (this.hud.isShortcutsOpen() || this.hud.isAdminWorldSelectOpen()) {
       return;
     }
 
@@ -491,6 +576,31 @@ export class GameScene extends Phaser.Scene {
 
     const key = event.key.toLowerCase();
 
+    if (this.isAdminTriggerEventTarget(event.target) && (event.key === 'Enter' || event.key === ' ')) {
+      return;
+    }
+
+    if (event.code === 'Backquote') {
+      event.preventDefault();
+      this.toggleAdminWorldSelect();
+      return;
+    }
+
+    if (event.key === 'Escape' && this.hud.isAdminWorldSelectOpen()) {
+      event.preventDefault();
+      this.closeAdminWorldSelect();
+      return;
+    }
+
+    if (this.hud.isAdminWorldSelectOpen()) {
+      const selectedIndex = Number(event.key) - 1;
+      if (Number.isInteger(selectedIndex) && selectedIndex >= 0 && selectedIndex < LEVELS.length) {
+        event.preventDefault();
+        this.enterAdminWorld(selectedIndex);
+      }
+      return;
+    }
+
     if (event.key === '?' || (event.key === '/' && event.shiftKey)) {
       event.preventDefault();
       this.toggleShortcuts();
@@ -524,6 +634,10 @@ export class GameScene extends Phaser.Scene {
     }
   };
 
+  private isAdminTriggerEventTarget(target: EventTarget | null): boolean {
+    return target instanceof Element && target.closest('#hud-world-entry') !== null;
+  }
+
   private toggleShortcuts(): void {
     if (this.hud.isShortcutsOpen()) {
       this.closeShortcuts();
@@ -548,6 +662,77 @@ export class GameScene extends Phaser.Scene {
     if (this.canPauseRun() && !this.isPaused && this.pausedAt > 0) {
       this.endPauseClock();
       this.resumeWorld();
+    }
+  }
+
+  private toggleAdminWorldSelect(): void {
+    if (this.hud.isAdminWorldSelectOpen()) {
+      this.closeAdminWorldSelect();
+    } else {
+      this.openAdminWorldSelect();
+    }
+  }
+
+  private openAdminWorldSelect(): void {
+    this.touchControls?.reset();
+    if (this.hud.isShortcutsOpen()) {
+      this.closeShortcuts();
+    }
+
+    this.hud.hideOverlay();
+    this.hud.showAdminWorldSelect(
+      LEVELS.map((level, index) => ({
+        index,
+        world: level.world,
+        theme: level.theme
+      })),
+      this.levelIndex,
+      (levelIndex) => this.enterAdminWorld(levelIndex),
+      () => this.closeAdminWorldSelect()
+    );
+
+    if (this.canPauseRun() && !this.isPaused && this.pausedAt === 0) {
+      this.beginPauseClock();
+      this.pauseWorld();
+    }
+  }
+
+  private closeAdminWorldSelect(): void {
+    this.hud.hideAdminWorldSelect();
+
+    if (this.canPauseRun() && !this.isPaused && this.pausedAt > 0) {
+      this.endPauseClock();
+      this.resumeWorld();
+      return;
+    }
+
+    this.restoreOverlayAfterAdmin();
+  }
+
+  private enterAdminWorld(levelIndex: number): void {
+    this.touchControls?.reset();
+    this.hud.hideAdminWorldSelect();
+    this.stopGameplayMusic(true);
+    this.scene.restart({
+      autoStart: true,
+      levelIndex: Phaser.Math.Clamp(levelIndex, 0, LEVELS.length - 1),
+      respawnAtCheckpoint: false
+    });
+  }
+
+  private restoreOverlayAfterAdmin(): void {
+    if (this.isStarted) {
+      if (this.isPaused) {
+        this.hud.showPaused(() => this.resumePausedRun());
+      }
+      return;
+    }
+
+    this.physics.pause();
+    if (this.carryState) {
+      this.hud.showCourseIntro(this.level.world, this.runState.lives, () => this.startRun());
+    } else {
+      this.hud.showTitle(() => this.showFirstCourseIntro());
     }
   }
 
@@ -1241,11 +1426,20 @@ export class GameScene extends Phaser.Scene {
       tile.setAlpha(0);
     }
     tile.refreshBody();
+    if (collidable && kind === 'conduitTop') {
+      tile.body.setSize(TILE_SIZE, TILE_SIZE + CONDUIT_TOP_STAND_LIFT, false);
+      tile.body.setOffset(0, -CONDUIT_TOP_STAND_LIFT);
+    }
     if (!collidable) {
       tile.setData('decorative', true);
       tile.body.enable = false;
     } else if (kind !== 'hiddenBonus') {
       this.solidTiles.add(`${x},${y}`);
+      if (kind === 'cloud') {
+        tile.body.checkCollision.down = false;
+        tile.body.checkCollision.left = false;
+        tile.body.checkCollision.right = false;
+      }
     } else {
       tile.body.checkCollision.up = false;
       tile.body.checkCollision.left = false;
@@ -1547,7 +1741,9 @@ export class GameScene extends Phaser.Scene {
     this.add.rectangle(poleX, baseY + 8, 58, 14, 0x111927).setOrigin(0.5, 0.5).setDepth(1);
     this.add.rectangle(poleX, baseY + 5, 50, 8, 0x6d4228).setOrigin(0.5, 0.5).setDepth(2);
 
-    this.goalZone = this.add.zone(poleX - 20, poleTopY - 16, 76, poleHeight + 36).setOrigin(0, 0);
+    const goalBoundaryTopY = -this.level.height * TILE_SIZE;
+    const goalBoundaryHeight = baseY + 20 - goalBoundaryTopY;
+    this.goalZone = this.add.zone(poleX - 20, goalBoundaryTopY, 76, goalBoundaryHeight).setOrigin(0, 0);
     this.physics.add.existing(this.goalZone, true);
   }
 
@@ -1752,6 +1948,7 @@ export class GameScene extends Phaser.Scene {
     const upDown = this.controls.cursors.up.isDown || this.controls.jump.isDown || Boolean(touch?.upDown);
     const spaceDown = this.controls.jumpAlt.isDown || Boolean(touch?.jumpDown);
     const jumpDown = upDown || spaceDown;
+    this.jumpHeld = jumpDown;
     const jumpPressed =
       Phaser.Input.Keyboard.JustDown(this.controls.cursors.up) ||
       Phaser.Input.Keyboard.JustDown(this.controls.jump) ||
@@ -1903,12 +2100,14 @@ export class GameScene extends Phaser.Scene {
 
     const dt = delta / 1000;
     const vineX = vine.x;
-    const centerDelta = Phaser.Math.Clamp(vineX - this.player.x, -VINE_CENTERING_SPEED * dt, VINE_CENTERING_SPEED * dt);
-    this.player.x += centerDelta;
-    body.position.x += centerDelta;
+    if (direction === 0) {
+      const centerDelta = Phaser.Math.Clamp(vineX - this.player.x, -VINE_CENTERING_SPEED * dt, VINE_CENTERING_SPEED * dt);
+      this.player.x += centerDelta;
+      body.position.x += centerDelta;
+    }
 
     const verticalDirection = Number(downDown) - Number(upDown);
-    this.player.setVelocityX(direction * WALK_SPEED * 0.35);
+    this.player.setVelocityX(direction * VINE_HORIZONTAL_SPEED);
     this.player.setVelocityY(verticalDirection * VINE_CLIMB_SPEED);
     this.player.setData('facing', direction || Number(this.player.getData('facing')) || 1);
     this.player.setAlpha(1);
@@ -1930,8 +2129,9 @@ export class GameScene extends Phaser.Scene {
       }
 
       const vineBody = vine.body;
+      const verticalGrace = this.isClimbingVine ? VINE_CLIMB_GRACE_PIXELS : 2;
       const horizontalOverlap = body.right > vineBody.left + 3 && body.left < vineBody.right - 3;
-      const verticalOverlap = body.bottom > vineBody.top + 2 && body.top < vineBody.bottom - 2;
+      const verticalOverlap = body.bottom > vineBody.top - verticalGrace && body.top < vineBody.bottom + verticalGrace;
       if (horizontalOverlap && verticalOverlap) {
         return vine;
       }
@@ -2090,6 +2290,7 @@ export class GameScene extends Phaser.Scene {
     this.isCrouching = false;
     this.releaseVine(body);
     this.applyPlayerPowerState(false);
+    const standingOffset = this.getPlayerStandingOffset();
     this.player.setVelocity(0, 0);
     body.enable = false;
     this.cameras.main.fadeOut(170, 0, 0, 0);
@@ -2111,8 +2312,14 @@ export class GameScene extends Phaser.Scene {
           return;
         }
 
-        const targetX = link.target.x * TILE_SIZE + TILE_SIZE / 2;
-        const targetY = link.target.y * TILE_SIZE;
+        const targetConduit = this.getConduitTopAt(link.target);
+        const targetX = targetConduit
+          ? (targetConduit.x + targetConduit.w / 2) * TILE_SIZE
+          : link.target.x * TILE_SIZE + TILE_SIZE / 2;
+        const rawTargetY = link.target.y * TILE_SIZE;
+        const targetY = targetConduit
+          ? this.getConduitStandingPlayerY(rawTargetY, standingOffset)
+          : rawTargetY;
         this.player.setPosition(targetX, targetY + CONDUIT_TRAVEL_PIXELS);
         this.player.setVelocity(0, 0);
         this.player.setAlpha(1);
@@ -2132,6 +2339,25 @@ export class GameScene extends Phaser.Scene {
         });
       }
     });
+  }
+
+  private getConduitTopAt(point: Point): { x: number; y: number; w: number; h: number } | undefined {
+    return this.level.solids.find(
+      (rect) =>
+        rect.kind === 'conduitTop' &&
+        point.x >= rect.x &&
+        point.x < rect.x + rect.w &&
+        point.y === rect.y
+    );
+  }
+
+  private getPlayerStandingOffset(): number {
+    const body = this.player.body as Phaser.Physics.Arcade.Body;
+    return body.bottom - this.player.y;
+  }
+
+  private getConduitStandingPlayerY(pipeTopY: number, standingOffset = this.getPlayerStandingOffset()): number {
+    return pipeTopY - CONDUIT_TOP_STAND_LIFT - standingOffset;
   }
 
   private snapCameraToPlayer(): void {
@@ -2799,9 +3025,16 @@ export class GameScene extends Phaser.Scene {
       enemy.setAlpha(0);
       this.setPipePlantDangerous(enemy, false);
 
-      if (now >= nextAt && !this.isPlayerNearPipePlant(enemy)) {
-        this.setPipePlantState(enemy, 'emerging');
+      if (now < nextAt) {
+        return;
       }
+
+      if (this.isPlayerNearPipePlant(enemy)) {
+        enemy.setData('plantNextAt', now + PIPE_PLANT_REEMERGE_SAFE_DELAY);
+        return;
+      }
+
+      this.setPipePlantState(enemy, 'emerging');
       return;
     }
 
@@ -2908,8 +3141,10 @@ export class GameScene extends Phaser.Scene {
         powerup.setVelocity(0, 0);
         powerup.setAngle(Math.sin(time * 0.013) * 4);
       } else if (body.blocked.left || body.touching.left) {
+        powerup.setData('direction', 1);
         powerup.setVelocityX(this.getPowerupSpeed(powerup));
       } else if (body.blocked.right || body.touching.right) {
+        powerup.setData('direction', -1);
         powerup.setVelocityX(-this.getPowerupSpeed(powerup));
       }
 
@@ -2950,9 +3185,11 @@ export class GameScene extends Phaser.Scene {
         this.stopCourseMusic(false);
         this.startStarMusic();
       }
+      this.updateStarSparkleTrail(time);
     } else {
       if (this.starPowerUntil > 0) {
         this.starPowerUntil = 0;
+        this.nextStarSparkleAt = 0;
         this.starChain = 0;
       }
 
@@ -2967,6 +3204,36 @@ export class GameScene extends Phaser.Scene {
 
   private hasStarPower(time = this.time.now): boolean {
     return time < this.starPowerUntil;
+  }
+
+  private updateStarSparkleTrail(time: number): void {
+    if (time < this.nextStarSparkleAt) {
+      return;
+    }
+
+    this.nextStarSparkleAt = time + STAR_SPARKLE_INTERVAL;
+    const colors = [0xfff08a, 0xa8fff2, 0xff7b54, 0xf8fbff, 0x83f56c];
+    const spark = this.add
+      .image(
+        this.player.x + Phaser.Math.Between(-18, 18),
+        this.player.y + Phaser.Math.Between(-42, 28),
+        'spark'
+      )
+      .setDepth(6)
+      .setScale(Phaser.Math.FloatBetween(1.2, 1.8));
+    spark.setTint(colors[Math.floor(time / STAR_SPARKLE_INTERVAL) % colors.length]);
+
+    this.tweens.add({
+      targets: spark,
+      x: spark.x + Phaser.Math.Between(-16, 16),
+      y: spark.y - Phaser.Math.Between(16, 34),
+      angle: spark.angle + Phaser.Math.Between(-90, 90),
+      alpha: 0,
+      scale: 0.25,
+      duration: 360,
+      ease: 'Quad.out',
+      onComplete: () => spark.destroy()
+    });
   }
 
   private refreshPlayerTint(time = this.time.now): void {
@@ -2995,10 +3262,11 @@ export class GameScene extends Phaser.Scene {
   private startStarPower(): void {
     this.starChain = 0;
     this.starPowerUntil = this.time.now + STAR_POWER_DURATION;
+    this.nextStarSparkleAt = 0;
     this.stopCourseMusic(false);
     this.stopStarMusic(true);
     this.refreshPlayerTint();
-    this.hud.flash('Prism power');
+    this.hud.flash('Star power');
     this.playTone(1046.5, 0.07);
     this.playTone(1318.51, 0.08, 0.07);
     this.playTone(1567.98, 0.1, 0.14);
@@ -3024,7 +3292,6 @@ export class GameScene extends Phaser.Scene {
     projectile.setMaxVelocity(PROJECTILE_SPEED, 760);
     projectile.setData('createdAt', time);
     projectile.setData('direction', facing);
-    projectile.setData('groundBounces', 0);
     projectile.setData('lastBounceAt', 0);
     body.setSize(12, 12);
     body.setOffset(1, 1);
@@ -3060,7 +3327,7 @@ export class GameScene extends Phaser.Scene {
 
     const kind = tile.getData('kind') as SolidKind | 'used';
     if (kind === 'brick') {
-      this.breakBrick(tile);
+      this.breakBrick(tile, -reboundDirection);
       this.awardScore(50, tile.x + TILE_SIZE / 2, tile.y);
     } else if (kind === 'bonus') {
       tile.setData('hitAt', now);
@@ -3084,6 +3351,10 @@ export class GameScene extends Phaser.Scene {
     return (enemy.getData('mode') as EnemyMode | undefined) ?? 'walking';
   }
 
+  private isShellSafeForPlayer(enemy: Phaser.Physics.Arcade.Sprite): boolean {
+    return this.time.now < (Number(enemy.getData('playerSafeUntil')) || 0);
+  }
+
   private handleSpringboardCollision(springboard: SpringboardSprite): void {
     const body = this.player.body as Phaser.Physics.Arcade.Body;
     const springBody = springboard.body;
@@ -3098,7 +3369,7 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    const holdingJump = this.controls.cursors.up.isDown || this.controls.jump.isDown || this.controls.jumpAlt.isDown;
+    const holdingJump = this.isPlayerHoldingJump();
     springboard.setData('readyAt', now + 260);
     this.isCrouching = false;
     this.releaseVine(body);
@@ -3151,7 +3422,7 @@ export class GameScene extends Phaser.Scene {
       } else if (this.isPowered) {
         this.bumpEnemiesAboveTile(tile);
         this.breakBrick(tile);
-        this.runState.score += 50;
+        this.awardScore(50, tile.x + TILE_SIZE / 2, tile.y);
         this.playTone(196, 0.05);
       } else {
         this.bumpTile(tile);
@@ -3201,16 +3472,17 @@ export class GameScene extends Phaser.Scene {
       const vineBlock = this.getVineBlock(tile);
       if (vineBlock) {
         this.spawnVine(tile, vineBlock);
-        this.runState.score += 100;
       } else if (this.isLifeBlock(tile)) {
-        this.spawnPowerup(tile.x + TILE_SIZE / 2, tile.y, 'life');
-        this.runState.score += 100;
+        this.spawnPowerup(tile.x + TILE_SIZE / 2, tile.y, 'life', this.getPowerupLaunchDirection(tile));
       } else if (this.isStarBlock(tile)) {
-        this.spawnPowerup(tile.x + TILE_SIZE / 2, tile.y, 'star');
-        this.runState.score += 100;
+        this.spawnPowerup(tile.x + TILE_SIZE / 2, tile.y, 'star', this.getPowerupLaunchDirection(tile));
       } else if (this.isPowerupBlock(tile)) {
-        this.spawnPowerup(tile.x + TILE_SIZE / 2, tile.y, this.isPowered ? 'spark' : 'growth');
-        this.runState.score += 100;
+        this.spawnPowerup(
+          tile.x + TILE_SIZE / 2,
+          tile.y,
+          this.isPowered ? 'spark' : 'growth',
+          this.getPowerupLaunchDirection(tile)
+        );
       } else {
         this.spawnBlockCoin(tile.x + TILE_SIZE / 2, tile.y);
         this.awardCoin(200, tile.x + TILE_SIZE / 2, tile.y - 8);
@@ -3219,6 +3491,19 @@ export class GameScene extends Phaser.Scene {
 
     this.cameras.main.shake(45, 0.001);
     this.playTone(880, 0.07);
+  }
+
+  private getPowerupLaunchDirection(tile: SolidSprite): -1 | 1 {
+    const tileX = Number(tile.getData('tileX'));
+    const tileY = Number(tile.getData('tileY'));
+    const leftBlocked = this.solidTiles.has(`${tileX - 1},${tileY}`);
+    const rightBlocked = this.solidTiles.has(`${tileX + 1},${tileY}`);
+
+    if (leftBlocked !== rightBlocked) {
+      return leftBlocked ? 1 : -1;
+    }
+
+    return this.player.x <= tile.x + TILE_SIZE / 2 ? 1 : -1;
   }
 
   private isPowerupBlock(tile: SolidSprite): boolean {
@@ -3386,10 +3671,16 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    this.spawnSparkBurst(enemy.x, enemy.y);
+    if (this.shouldLaunchDefeatedEnemy(enemy)) {
+      const direction = enemy.x < this.player.x ? -1 : 1;
+      this.launchDefeatedEnemy(enemy, BLOCK_BUMP_SCORE, 0xfff08a, direction);
+      return;
+    }
+
     body.enable = false;
     enemy.setVelocity(0, 0);
     enemy.setTint(0xfff08a);
-    this.spawnSparkBurst(enemy.x, enemy.y);
     this.awardScore(BLOCK_BUMP_SCORE, enemy.x, enemy.y - 18);
     this.tweens.add({
       targets: enemy,
@@ -3403,7 +3694,7 @@ export class GameScene extends Phaser.Scene {
     this.playTone(196, 0.06);
   }
 
-  private breakBrick(tile: SolidSprite): void {
+  private breakBrick(tile: SolidSprite, debrisImpulseDirection = 0): void {
     const tileX = Number(tile.getData('tileX'));
     const tileY = Number(tile.getData('tileY'));
     const homeY = Number(tile.getData('homeY')) || tile.y;
@@ -3412,12 +3703,13 @@ export class GameScene extends Phaser.Scene {
     tile.refreshBody();
     this.solidTiles.delete(`${tileX},${tileY}`);
     this.cameras.main.shake(70, 0.0014);
-    this.spawnBrickDebris(tile.x, homeY, this.getTileThemeForTile(tile));
+    this.spawnBrickDebris(tile.x, homeY, this.getTileThemeForTile(tile), debrisImpulseDirection);
     tile.disableBody(true, true);
   }
 
-  private spawnBrickDebris(x: number, y: number, theme: LevelTheme): void {
+  private spawnBrickDebris(x: number, y: number, theme: LevelTheme, impulseDirection = 0): void {
     const texture = this.getThemedTexture('brick-fragment', theme);
+    const horizontalImpulse = Phaser.Math.Clamp(impulseDirection, -1, 1) * 92;
     const pieces = [
       { offsetX: 8, offsetY: 7, velocityX: -145, velocityY: -405, spin: -520 },
       { offsetX: 24, offsetY: 7, velocityX: 145, velocityY: -405, spin: 520 },
@@ -3428,7 +3720,7 @@ export class GameScene extends Phaser.Scene {
     for (const piece of pieces) {
       const shard = this.physics.add.image(x + piece.offsetX, y + piece.offsetY, texture);
       shard.setDepth(6);
-      shard.setVelocity(piece.velocityX, piece.velocityY);
+      shard.setVelocity(piece.velocityX + horizontalImpulse, piece.velocityY);
       shard.setGravityY(BRICK_DEBRIS_GRAVITY_Y);
       shard.setAngularVelocity(piece.spin);
       shard.setCollideWorldBounds(false);
@@ -3458,7 +3750,7 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  private spawnPowerup(x: number, y: number, kind: PowerupKind): void {
+  private spawnPowerup(x: number, y: number, kind: PowerupKind, initialDirection: -1 | 1 = 1): void {
     const textureByKind: Record<PowerupKind, string> = {
       growth: 'powerup',
       spark: 'powerup-spark',
@@ -3468,6 +3760,7 @@ export class GameScene extends Phaser.Scene {
     const texture = textureByKind[kind];
     const powerup = this.powerups.create(x, y + TILE_SIZE / 2, texture) as Phaser.Physics.Arcade.Sprite;
     powerup.setData('kind', kind);
+    powerup.setData('direction', initialDirection);
     powerup.setDepth(-1);
     powerup.setVelocity(0, 0);
     powerup.setBounce(kind === 'spark' ? 0 : 1, kind === 'star' ? 0.86 : 0);
@@ -3489,7 +3782,8 @@ export class GameScene extends Phaser.Scene {
         if (kind === 'spark') {
           powerup.setVelocity(0, 0);
         } else {
-          powerup.setVelocityX(this.getPowerupSpeed(powerup));
+          const direction = Number(powerup.getData('direction')) || 1;
+          powerup.setVelocityX(direction * this.getPowerupSpeed(powerup));
         }
         if (kind === 'star') {
           powerup.setVelocityY(-250);
@@ -3599,10 +3893,11 @@ export class GameScene extends Phaser.Scene {
 
     if (this.runState.coins >= 100) {
       this.runState.coins -= 100;
-      this.awardExtraLife(x, y);
+      this.awardExtraLife(x, y, '100 coins');
       return true;
     }
 
+    this.updateHud();
     return false;
   }
 
@@ -3641,8 +3936,12 @@ export class GameScene extends Phaser.Scene {
 
     if (kind === 'shellback' && mode === 'shell') {
       const direction = this.player.x < enemy.x ? 1 : -1;
-      this.kickShell(enemy, direction);
+      this.kickShell(enemy, direction, 100, true);
       this.player.setVelocityX(-direction * 150);
+      return;
+    }
+
+    if (kind === 'shellback' && mode === 'sliding' && this.isShellSafeForPlayer(enemy)) {
       return;
     }
 
@@ -3680,27 +3979,14 @@ export class GameScene extends Phaser.Scene {
     const verticalDrop = body.bottom - previousBottom;
     const crossedEnemyTop = previousBottom <= enemyBody.top + STOMP_CROSSING_TOLERANCE;
     const feetStillOnTop = body.bottom <= enemyBody.top + STOMP_FEET_MAX_DEPTH;
-    const playerCenterX = (body.left + body.right) / 2;
-    const horizontalInset = Math.min(STOMP_HORIZONTAL_INSET, Math.max(2, enemyBody.width * 0.3));
-    const playerCenteredOverEnemy =
-      playerCenterX > enemyBody.left + horizontalInset && playerCenterX < enemyBody.right - horizontalInset;
+    const horizontalInset = Math.min(STOMP_HORIZONTAL_INSET, Math.max(2, enemyBody.width * 0.18));
     const horizontalOverlap = body.right > enemyBody.left + horizontalInset && body.left < enemyBody.right - horizontalInset;
     const hasDownwardMomentum =
       verticalDrop >= STOMP_MIN_DROP_PIXELS ||
       body.velocity.y >= STOMP_MIN_DESCENT_VELOCITY ||
       this.previousPlayerVelocityY >= STOMP_MIN_DESCENT_VELOCITY;
-    const sideContactTooDeep =
-      (body.touching.left || body.touching.right || body.blocked.left || body.blocked.right) &&
-      body.bottom > enemyBody.top + STOMP_SIDE_CONTACT_MAX_DEPTH;
 
-    return (
-      hasDownwardMomentum &&
-      !sideContactTooDeep &&
-      crossedEnemyTop &&
-      feetStillOnTop &&
-      horizontalOverlap &&
-      playerCenteredOverEnemy
-    );
+    return hasDownwardMomentum && crossedEnemyTop && feetStillOnTop && horizontalOverlap;
   }
 
   private stompEnemy(enemy: Phaser.Physics.Arcade.Sprite): void {
@@ -3722,7 +4008,7 @@ export class GameScene extends Phaser.Scene {
         this.stopShell(enemy, stompReward);
       } else {
         const direction = this.player.x < enemy.x ? 1 : -1;
-        this.kickShell(enemy, direction, stompReward);
+        this.kickShell(enemy, direction, stompReward, true);
       }
 
       this.cameras.main.shake(55, 0.0015);
@@ -3735,8 +4021,12 @@ export class GameScene extends Phaser.Scene {
     this.bouncePlayerFromStomp();
   }
 
+  private isPlayerHoldingJump(): boolean {
+    return this.jumpHeld || this.controls.cursors.up.isDown || this.controls.jump.isDown || this.controls.jumpAlt.isDown;
+  }
+
   private bouncePlayerFromStomp(allowHeldBoost = true): void {
-    const holdingJump = this.controls.cursors.up.isDown || this.controls.jump.isDown || this.controls.jumpAlt.isDown;
+    const holdingJump = this.isPlayerHoldingJump();
     this.player.setVelocityY(allowHeldBoost && holdingJump ? STOMP_HELD_BOUNCE_VELOCITY : STOMP_BOUNCE_VELOCITY);
     this.jumpBufferedUntil = 0;
     this.coyoteUntil = 0;
@@ -3837,17 +4127,24 @@ export class GameScene extends Phaser.Scene {
     this.playTone(246.94, 0.08);
   }
 
-  private kickShell(enemy: Phaser.Physics.Arcade.Sprite, direction: number, reward: ComboReward = 100): void {
+  private kickShell(
+    enemy: Phaser.Physics.Arcade.Sprite,
+    direction: number,
+    reward: ComboReward = 100,
+    protectPlayer = false
+  ): void {
     const shellDirection = direction || 1;
     enemy.setData('mode', 'sliding' satisfies EnemyMode);
     enemy.setData('direction', shellDirection);
     enemy.setData('shellHits', 0);
     enemy.setData('shellEnteredAt', 0);
+    enemy.setData('playerSafeUntil', protectPlayer ? this.time.now + SHELL_PLAYER_SAFE_AFTER_KICK_MS : 0);
     enemy.setTexture('enemy-shell');
     enemy.setVelocityX(shellDirection * SHELL_SLIDE_SPEED);
     enemy.setAngle(0);
     enemy.setTint(0xffffff);
     this.configureEnemyBody(enemy, 'sliding');
+    this.spawnShellKickDust(enemy, shellDirection);
     this.awardComboReward(reward, enemy.x, enemy.y - 18);
     if (reward !== '1up') {
       this.hud.flash('Kick');
@@ -3855,10 +4152,19 @@ export class GameScene extends Phaser.Scene {
     this.playTone(329.63, 0.07);
   }
 
+  private spawnShellKickDust(enemy: Phaser.Physics.Arcade.Sprite, shellDirection: number): void {
+    const body = enemy.body as Phaser.Physics.Arcade.Body;
+    const dustX = enemy.x - shellDirection * 15;
+    const dustY = body.bottom - 3;
+    this.spawnDustPuff(dustX, dustY, -shellDirection, 0.82, 0);
+    this.spawnDustPuff(dustX - shellDirection * 5, dustY - 2, -shellDirection, 0.58, 34);
+  }
+
   private stopShell(enemy: Phaser.Physics.Arcade.Sprite, reward: ComboReward = 100): void {
     enemy.setData('mode', 'shell' satisfies EnemyMode);
     enemy.setData('shellHits', 0);
     enemy.setData('shellEnteredAt', this.time.now);
+    enemy.setData('playerSafeUntil', 0);
     enemy.setTexture('enemy-shell');
     enemy.setVelocityX(0);
     enemy.setAngle(0);
@@ -3875,6 +4181,7 @@ export class GameScene extends Phaser.Scene {
     enemy.setData('mode', 'walking' satisfies EnemyMode);
     enemy.setData('shellEnteredAt', 0);
     enemy.setData('shellHits', 0);
+    enemy.setData('playerSafeUntil', 0);
     enemy.setTexture('enemy-shellback');
     enemy.setVelocityX(direction * WALKING_ENEMY_SPEED);
     enemy.setVelocityY(-95);
@@ -3924,6 +4231,58 @@ export class GameScene extends Phaser.Scene {
     this.playTone(246.94, 0.08);
   }
 
+  private launchDefeatedEnemy(
+    enemy: Phaser.Physics.Arcade.Sprite,
+    reward: ComboReward,
+    tint: number,
+    direction: number
+  ): void {
+    const body = enemy.body as Phaser.Physics.Arcade.Body;
+    if (!enemy.active || !body.enable) {
+      return;
+    }
+
+    const launchDirection = direction < 0 ? -1 : 1;
+    const startX = enemy.x;
+    const startY = enemy.y;
+    body.enable = false;
+    enemy.setVelocity(0, 0);
+    enemy.setTint(tint);
+    enemy.setDepth(6);
+    enemy.setFlipY(true);
+
+    this.tweens.add({
+      targets: enemy,
+      x: startX + launchDirection * (LAUNCHED_ENEMY_DRIFT_PIXELS * 0.36),
+      y: startY - LAUNCHED_ENEMY_RISE_PIXELS,
+      angle: enemy.angle + launchDirection * 150,
+      duration: LAUNCHED_ENEMY_RISE_MS,
+      ease: 'Quad.out',
+      onComplete: () => {
+        this.tweens.add({
+          targets: enemy,
+          x: startX + launchDirection * LAUNCHED_ENEMY_DRIFT_PIXELS,
+          y: startY + LAUNCHED_ENEMY_FALL_PIXELS,
+          angle: enemy.angle + launchDirection * 260,
+          alpha: 0,
+          duration: LAUNCHED_ENEMY_FALL_MS,
+          ease: 'Quad.in',
+          onComplete: () => {
+            enemy.setFlipY(false);
+            enemy.disableBody(true, true);
+          }
+        });
+      }
+    });
+    this.awardComboReward(reward, enemy.x, enemy.y - 18);
+    this.playTone(246.94, 0.08);
+  }
+
+  private shouldLaunchDefeatedEnemy(enemy: Phaser.Physics.Arcade.Sprite): boolean {
+    const kind = this.getEnemyKind(enemy);
+    return kind !== 'pipePlant' && kind !== 'guardian';
+  }
+
   private handleEnemyEnemyCollision(enemyA: Phaser.Physics.Arcade.Sprite, enemyB: Phaser.Physics.Arcade.Sprite): void {
     if (enemyA === enemyB || !enemyA.active || !enemyB.active) {
       return;
@@ -3961,9 +4320,14 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.spawnSparkBurst(target.x, target.y);
-    this.defeatEnemy(target, this.nextShellReward(shell), 0xffe66d);
     const shellBody = shell.body as Phaser.Physics.Arcade.Body;
     const direction = Math.sign(shellBody.velocity.x) || Number(shell.getData('direction')) || 1;
+    const reward = this.nextShellReward(shell);
+    if (this.shouldLaunchDefeatedEnemy(target)) {
+      this.launchDefeatedEnemy(target, reward, 0xffe66d, direction);
+    } else {
+      this.defeatEnemy(target, reward, 0xffe66d);
+    }
     shell.setVelocityX(direction * SHELL_SLIDE_SPEED);
     shell.setData('direction', direction);
     this.cameras.main.shake(50, 0.0014);
@@ -3985,8 +4349,10 @@ export class GameScene extends Phaser.Scene {
     }
 
     if ((body.blocked.left || body.touching.left) && tileKind !== 'ground') {
+      powerup.setData('direction', 1);
       powerup.setVelocityX(this.getPowerupSpeed(powerup));
     } else if ((body.blocked.right || body.touching.right) && tileKind !== 'ground') {
+      powerup.setData('direction', -1);
       powerup.setVelocityX(-this.getPowerupSpeed(powerup));
     }
   }
@@ -4010,15 +4376,7 @@ export class GameScene extends Phaser.Scene {
         return;
       }
 
-      const bounces = Number(projectile.getData('groundBounces')) || 0;
-      if (bounces >= PROJECTILE_MAX_GROUND_BOUNCES) {
-        this.spawnSparkBurst(projectile.x, projectile.y);
-        projectile.destroy();
-        return;
-      }
-
       const direction = Number(projectile.getData('direction')) || Math.sign(body.velocity.x) || 1;
-      projectile.setData('groundBounces', bounces + 1);
       projectile.setData('lastBounceAt', now);
       projectile.setVelocityX(direction * PROJECTILE_SPEED);
       projectile.setVelocityY(PROJECTILE_BOUNCE_Y);
@@ -4037,6 +4395,8 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    const projectileBody = projectile.body as Phaser.Physics.Arcade.Body;
+    const direction = Number(projectile.getData('direction')) || Math.sign(projectileBody.velocity.x) || 1;
     this.spawnSparkBurst(projectile.x, projectile.y);
     projectile.destroy();
     if (this.getEnemyKind(enemy) === 'guardian') {
@@ -4044,7 +4404,11 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    this.defeatEnemy(enemy, 200, 0xffe66d);
+    if (this.shouldLaunchDefeatedEnemy(enemy)) {
+      this.launchDefeatedEnemy(enemy, 200, 0xffe66d, direction);
+    } else {
+      this.defeatEnemy(enemy, 200, 0xffe66d);
+    }
     this.cameras.main.shake(45, 0.0012);
   }
 
@@ -4178,14 +4542,22 @@ export class GameScene extends Phaser.Scene {
     const y = powerup.y;
     powerup.disableBody(true, true);
     const kind = (powerup.getData('kind') as PowerupKind | undefined) ?? 'growth';
+
+    if (kind === 'life') {
+      this.awardExtraLife(x, y - 22);
+      return;
+    }
+
     this.awardScore(1000, x, y - 18);
     if (kind === 'star') {
       this.startStarPower();
       return;
     }
 
-    if (kind === 'life') {
-      this.awardExtraLife(x, y - 22);
+    if (kind === 'growth' && this.isPowered) {
+      this.hud.flash('Power bonus');
+      this.playTone(987.77, 0.07);
+      this.playTone(1318.51, 0.09, 0.07);
       return;
     }
 
@@ -4394,6 +4766,7 @@ export class GameScene extends Phaser.Scene {
 
   private startPowerDownRecovery(message: string): void {
     const body = this.player.body as Phaser.Physics.Arcade.Body;
+    const finalPoweredState = this.isPowered;
     this.stopGameplayMusic(false);
     this.releaseVine(body);
     this.isDamageRecovering = true;
@@ -4402,19 +4775,14 @@ export class GameScene extends Phaser.Scene {
     this.player.setVelocity(0, 0);
     this.player.setAcceleration(0, 0);
     this.player.setAlpha(1);
+    this.tweens.killTweensOf(this.player);
     this.physics.pause();
-    this.applyPlayerPowerState(true);
     this.cameras.main.shake(130, 0.0025);
     this.hud.flash(message);
     this.playTone(196, 0.08);
     this.playTone(146.83, 0.1, 0.08);
 
-    this.player.setTintFill(0xffffff);
-    this.time.delayedCall(70, () => {
-      if (!this.isFinished && this.isDamageRecovering) {
-        this.refreshPlayerTint();
-      }
-    });
+    this.playPowerDownFlicker(finalPoweredState);
 
     this.time.delayedCall(DAMAGE_HITSTOP_DURATION, () => {
       if (this.isFinished) {
@@ -4422,12 +4790,29 @@ export class GameScene extends Phaser.Scene {
       }
 
       this.isDamageRecovering = false;
+      this.applyPlayerPowerState(false, finalPoweredState);
       this.physics.resume();
       this.player.setAlpha(1);
       this.player.setVelocityY(-190);
       this.refreshPlayerTint();
       this.startGameplayMusic();
     });
+  }
+
+  private playPowerDownFlicker(finalPoweredState: boolean): void {
+    const steps = Math.ceil(DAMAGE_HITSTOP_DURATION / POWER_DOWN_FLICKER_STEP_MS);
+
+    for (let step = 0; step < steps; step += 1) {
+      this.time.delayedCall(step * POWER_DOWN_FLICKER_STEP_MS, () => {
+        if (this.isFinished || !this.isDamageRecovering) {
+          return;
+        }
+
+        const showPoweredFrame = finalPoweredState || step % 2 === 0;
+        this.applyPlayerPowerState(false, showPoweredFrame);
+        this.player.setTintFill(step % 2 === 0 ? 0xffffff : 0xa8fff2);
+      });
+    }
   }
 
   private finishLevel(): void {
@@ -4468,7 +4853,7 @@ export class GameScene extends Phaser.Scene {
     this.slideFlagToBase(() => {
       this.runPlayerToGoalHouse(() => {
         this.launchFlagFireworks(flagFireworkCount, () => {
-          this.convertTimeBonusToScore(() => this.showClearOverlay());
+          this.convertTimeBonusToScore(() => this.playCourseClearFanfare(() => this.showClearOverlay()));
         });
       });
     });
@@ -4498,7 +4883,7 @@ export class GameScene extends Phaser.Scene {
     this.playTone(523.25, 0.08);
     this.playTone(659.25, 0.08, 0.08);
     this.runPlayerIntoExitPipe(() => {
-      this.convertTimeBonusToScore(() => this.showClearOverlay());
+      this.convertTimeBonusToScore(() => this.playCourseClearFanfare(() => this.showClearOverlay()));
     });
   }
 
@@ -4527,7 +4912,7 @@ export class GameScene extends Phaser.Scene {
     this.playTone(783.99, 0.1, 0.16);
 
     this.time.delayedCall(760, () => {
-      this.convertTimeBonusToScore(() => this.showClearOverlay());
+      this.convertTimeBonusToScore(() => this.playCourseClearFanfare(() => this.showClearOverlay()));
     });
   }
 
@@ -4702,6 +5087,17 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  private playCourseClearFanfare(onComplete: () => void): void {
+    this.hud.flash('Course clear');
+
+    for (const step of COURSE_CLEAR_FANFARE_STEPS) {
+      this.playTone(step.frequency, step.duration, step.delay, 0.024);
+      this.playTone(step.frequency / 2, step.duration * 1.35, step.delay, 0.011);
+    }
+
+    this.time.delayedCall(COURSE_CLEAR_FANFARE_DURATION_MS, onComplete);
+  }
+
   private showClearOverlay(): void {
     const nextLevel = LEVELS[this.levelIndex + 1];
     if (nextLevel) {
@@ -4736,7 +5132,7 @@ export class GameScene extends Phaser.Scene {
     const dismountX = poleX + FLAG_DISMOUNT_OFFSET_X;
     const playerBaseY = baseY + FLAG_PLAYER_BASE_OFFSET_Y;
 
-    this.player.setFlipX(false);
+    this.setPlayerJumpPose(-1);
     this.tweens.add({
       targets: this.flag,
       y: baseY,
@@ -4750,6 +5146,7 @@ export class GameScene extends Phaser.Scene {
       duration: FLAG_SLIDE_DURATION,
       ease: 'Sine.inOut',
       onComplete: () => {
+        this.setPlayerJumpPose(1);
         this.tweens.add({
           targets: this.player,
           x: dismountX,
@@ -4763,6 +5160,7 @@ export class GameScene extends Phaser.Scene {
               duration: FLAG_DISMOUNT_SETTLE_DURATION,
               ease: 'Quad.in',
               onComplete: () => {
+                this.player.setFlipX(false);
                 this.time.delayedCall(60, onComplete);
               }
             });
@@ -4776,8 +5174,7 @@ export class GameScene extends Phaser.Scene {
     const body = this.player.body as Phaser.Physics.Arcade.Body;
     const pipeCenterX = this.level.goal.x * TILE_SIZE + TILE_SIZE;
     const pipeTopY = this.level.goal.y * TILE_SIZE;
-    const standingOffset = body.bottom - this.player.y;
-    const standY = pipeTopY - standingOffset + 2;
+    const standY = this.getConduitStandingPlayerY(pipeTopY);
     const distance = Math.abs(pipeCenterX - this.player.x);
     const walkDuration = Phaser.Math.Clamp(distance * 7, 220, 620);
 
@@ -4838,28 +5235,81 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    this.showScorePopup(totalBonus, this.goalHouseX, (this.level.height - 6) * TILE_SIZE);
+    const ticker = this.showTimeBonusTicker(totalBonus);
     this.hud.flash(`Time bonus ${totalBonus}`);
 
     const tick = (): void => {
       const chunk = Math.min(TIME_BONUS_STEP, this.runState.time);
       if (chunk <= 0) {
-        this.time.delayedCall(180, onComplete);
+        this.finishTimeBonusTicker(ticker, onComplete);
         return;
       }
 
       this.runState.time -= chunk;
       this.runState.score += chunk * TIME_BONUS_SCORE;
       this.updateHud();
-
-      if (this.runState.time % 25 === 0 || this.runState.time === 0) {
-        this.playTone(987.77, 0.025);
-      }
+      this.updateTimeBonusTicker(ticker, this.runState.time * TIME_BONUS_SCORE);
+      this.playTimeBonusTick(this.runState.time);
 
       this.time.delayedCall(TIME_BONUS_STEP_DELAY, tick);
     };
 
     tick();
+  }
+
+  private showTimeBonusTicker(totalBonus: number): Phaser.GameObjects.Text {
+    const ticker = this.add
+      .text(this.goalHouseX, (this.level.height - 6) * TILE_SIZE, `TIME BONUS ${totalBonus}`, {
+        color: '#fff4a3',
+        fontFamily: '"Courier New", "SFMono-Regular", Consolas, monospace',
+        fontSize: '17px',
+        fontStyle: 'bold',
+        stroke: '#111927',
+        strokeThickness: 4
+      })
+      .setOrigin(0.5)
+      .setDepth(12);
+
+    this.tweens.add({
+      targets: ticker,
+      y: ticker.y - 8,
+      duration: 160,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.inOut'
+    });
+
+    return ticker;
+  }
+
+  private updateTimeBonusTicker(ticker: Phaser.GameObjects.Text, remainingBonus: number): void {
+    ticker.setText(`TIME BONUS ${remainingBonus}`);
+    ticker.setScale(remainingBonus > 0 ? 1.04 : 1.12);
+  }
+
+  private finishTimeBonusTicker(ticker: Phaser.GameObjects.Text, onComplete: () => void): void {
+    this.tweens.killTweensOf(ticker);
+    ticker.setText('TIME BONUS 0');
+    ticker.setScale(1.14);
+    this.spawnFlagScoreBurst(ticker.x, ticker.y);
+    this.time.delayedCall(180, () => {
+      this.tweens.add({
+        targets: ticker,
+        y: ticker.y - 24,
+        alpha: 0,
+        duration: 220,
+        ease: 'Quad.out',
+        onComplete: () => {
+          ticker.destroy();
+          onComplete();
+        }
+      });
+    });
+  }
+
+  private playTimeBonusTick(remainingTime: number): void {
+    const pitch = remainingTime % 10 === 0 ? 1318.51 : 987.77;
+    this.playTone(pitch, 0.018, 0, 0.009);
   }
 
   private awardComboReward(reward: ComboReward, x: number, y: number): void {
@@ -4871,10 +5321,10 @@ export class GameScene extends Phaser.Scene {
     this.awardScore(reward, x, y);
   }
 
-  private awardExtraLife(x: number, y: number): void {
+  private awardExtraLife(x: number, y: number, message = '1-Up'): void {
     this.runState.lives += 1;
     this.showScorePopup('1-Up', x, y);
-    this.hud.flash('1-Up');
+    this.hud.flash(message);
     this.updateHud();
     this.playTone(1046.5, 0.08);
     this.playTone(1567.98, 0.12, 0.08);
@@ -4883,6 +5333,7 @@ export class GameScene extends Phaser.Scene {
   private awardScore(score: number, x: number, y: number): void {
     this.runState.score += score;
     this.showScorePopup(score, x, y);
+    this.updateHud();
   }
 
   private gameOver(): void {
@@ -4910,7 +5361,8 @@ export class GameScene extends Phaser.Scene {
         !this.isDamageRecovering &&
         !this.isPowerTransitioning &&
         !this.isLifeLossAnimating &&
-        !this.hud.isShortcutsOpen()
+        !this.hud.isShortcutsOpen() &&
+        !this.hud.isAdminWorldSelectOpen()
     );
   }
 
@@ -4962,20 +5414,26 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    const theme = this.getCourseMusicTheme();
     const step = this.courseMusicStep;
-    const melody = COURSE_MUSIC_NOTES[step % COURSE_MUSIC_NOTES.length];
-    const bass = COURSE_MUSIC_BASS[step % COURSE_MUSIC_BASS.length];
-    if (bass > 0 && step % 2 === 0) {
-      this.playTone(bass, 0.09, 0, 0.011);
+    const melody = theme.melody[step % theme.melody.length] ?? 0;
+    const bass = theme.bass[step % theme.bass.length] ?? 0;
+    if (bass > 0 && step % theme.bassStride === 0) {
+      this.playTone(bass, theme.bassDuration, 0, theme.bassVolume);
     }
     if (melody > 0) {
-      this.playTone(melody, 0.052, 0.014, 0.014);
+      this.playTone(melody, theme.melodyDuration, theme.melodyDelay, theme.melodyVolume);
     }
     this.courseMusicStep = step + 1;
   }
 
   private getCourseMusicStepDelay(): number {
-    return this.didTimeWarning ? COURSE_MUSIC_HURRY_STEP_MS : COURSE_MUSIC_STEP_MS;
+    const theme = this.getCourseMusicTheme();
+    return this.didTimeWarning ? theme.hurryStepMs : theme.stepMs;
+  }
+
+  private getCourseMusicTheme(): CourseMusicTheme {
+    return COURSE_MUSIC_THEMES[this.level.world] ?? DEFAULT_COURSE_MUSIC_THEME;
   }
 
   private startStarMusic(): void {

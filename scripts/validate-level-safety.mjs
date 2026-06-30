@@ -33,8 +33,11 @@ try {
   const checkpointLiftSafeY = 3;
   const checkpointMovingPlatformSafeX = 4;
   const checkpointMovingPlatformSafeY = 3;
+  const checkpointHazardSafeX = 3;
+  const checkpointHazardSafeY = 2;
   const checkpointClearRadiusX = 1;
   const checkpointClearHeight = 2;
+  const checkpointSupportRadiusX = 1;
 
   const expandRect = (rect) => {
     const tiles = [];
@@ -89,6 +92,19 @@ try {
       }
     }
 
+    const itemBlockGroups = [
+      ['power-up block', level.powerupBlocks],
+      ['star block', level.starBlocks],
+      ['life block', level.lifeBlocks]
+    ];
+    for (const [label, points] of itemBlockGroups) {
+      for (const point of points) {
+        if (conduitRects.some((rect) => overlapsConduitClearance(point, rect))) {
+          failures.push(`${level.world}: ${label} at ${formatPoint(point)} would spawn an item inside a conduit or its mouth`);
+        }
+      }
+    }
+
     for (const link of level.conduitLinks) {
       const entryKey = formatPoint(link.entry);
       const entryTile = solidTileByKey.get(entryKey);
@@ -127,9 +143,11 @@ try {
     }
 
     const checkpoint = level.checkpoint;
-    const checkpointSupportKey = `${checkpoint.x},${checkpoint.y + 2}`;
-    if (!solidTileKeys.has(checkpointSupportKey)) {
-      failures.push(`${level.world}: checkpoint at ${formatPoint(checkpoint)} has no stable support at ${checkpointSupportKey}`);
+    for (let x = checkpoint.x - checkpointSupportRadiusX; x <= checkpoint.x + checkpointSupportRadiusX; x += 1) {
+      const checkpointSupportKey = `${x},${checkpoint.y + 2}`;
+      if (!solidTileKeys.has(checkpointSupportKey)) {
+        failures.push(`${level.world}: checkpoint at ${formatPoint(checkpoint)} has no stable support at ${checkpointSupportKey}`);
+      }
     }
 
     for (let x = checkpoint.x - checkpointClearRadiusX; x <= checkpoint.x + checkpointClearRadiusX; x += 1) {
@@ -141,11 +159,11 @@ try {
       }
     }
 
-    for (let x = checkpoint.x - 1; x <= checkpoint.x + 1; x += 1) {
-      for (let y = checkpoint.y; y <= checkpoint.y + 2; y += 1) {
+    for (let x = checkpoint.x - checkpointHazardSafeX; x <= checkpoint.x + checkpointHazardSafeX; x += 1) {
+      for (let y = checkpoint.y; y <= checkpoint.y + checkpointHazardSafeY; y += 1) {
         const key = `${x},${y}`;
         if (hazardTileKeys.has(key)) {
-          failures.push(`${level.world}: checkpoint at ${formatPoint(checkpoint)} overlaps nearby hazard tile ${key}`);
+          failures.push(`${level.world}: checkpoint at ${formatPoint(checkpoint)} is too close to hazard tile ${key}`);
         }
       }
     }

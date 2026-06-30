@@ -6,6 +6,12 @@ export interface HudSnapshot {
   world: string;
 }
 
+export interface AdminWorldOption {
+  index: number;
+  world: string;
+  theme: string;
+}
+
 interface OverlayCopy {
   kicker: string;
   title: string;
@@ -16,10 +22,12 @@ interface OverlayCopy {
 }
 
 export class HudController {
+  private readonly doc: Document;
   private readonly scoreEl: HTMLElement;
   private readonly coinsEl: HTMLElement;
   private readonly timeEl: HTMLElement;
   private readonly worldEl: HTMLElement;
+  private readonly worldItemEl: HTMLElement;
   private readonly overlayEl: HTMLElement;
   private readonly overlayKickerEl: HTMLElement;
   private readonly overlayTitleEl: HTMLElement;
@@ -27,8 +35,12 @@ export class HudController {
   private readonly primaryButton: HTMLButtonElement;
   private readonly shortcutsOverlayEl: HTMLElement;
   private readonly shortcutsCloseButton: HTMLButtonElement;
+  private readonly adminOverlayEl: HTMLElement;
+  private readonly adminWorldListEl: HTMLElement;
+  private readonly adminCloseButton: HTMLButtonElement;
   private readonly messageEl: HTMLElement;
   private shortcutsCloseHandler?: () => void;
+  private adminCloseHandler?: () => void;
   private messageTimer = 0;
   private overlayTimer = 0;
   private readonly handleShortcutsKeydown = (event: KeyboardEvent): void => {
@@ -45,16 +57,34 @@ export class HudController {
     this.shortcutsCloseHandler?.();
   };
 
+  private readonly handleAdminKeydown = (event: KeyboardEvent): void => {
+    if (this.adminOverlayEl.hidden || event.repeat) {
+      return;
+    }
+
+    if (event.key !== 'Escape' && event.code !== 'Backquote') {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.adminCloseHandler?.();
+  };
+
   constructor(doc: Document) {
+    this.doc = doc;
     this.scoreEl = this.requireElement(doc, 'hud-score');
     this.coinsEl = this.requireElement(doc, 'hud-coins');
     this.timeEl = this.requireElement(doc, 'hud-time');
     this.worldEl = this.requireElement(doc, 'hud-world');
+    this.worldItemEl = this.requireElement(doc, 'hud-world-entry');
     this.overlayEl = this.requireElement(doc, 'overlay');
     this.overlayKickerEl = this.requireElement(doc, 'overlay-kicker');
     this.overlayTitleEl = this.requireElement(doc, 'overlay-title');
     this.overlayCopyEl = this.requireElement(doc, 'overlay-copy');
     this.shortcutsOverlayEl = this.requireElement(doc, 'shortcuts-overlay');
+    this.adminOverlayEl = this.requireElement(doc, 'admin-overlay');
+    this.adminWorldListEl = this.requireElement(doc, 'admin-world-list');
     this.messageEl = this.requireElement(doc, 'message');
 
     const primaryButton = doc.getElementById('overlay-primary');
@@ -69,7 +99,14 @@ export class HudController {
     }
     this.shortcutsCloseButton = shortcutsCloseButton;
 
+    const adminCloseButton = doc.getElementById('admin-close');
+    if (!(adminCloseButton instanceof HTMLButtonElement)) {
+      throw new Error('Missing admin close button');
+    }
+    this.adminCloseButton = adminCloseButton;
+
     doc.addEventListener('keydown', this.handleShortcutsKeydown, true);
+    doc.addEventListener('keydown', this.handleAdminKeydown, true);
   }
 
   setPrimaryAction(handler: () => void): void {
@@ -79,6 +116,18 @@ export class HudController {
   setShortcutsCloseAction(handler: () => void): void {
     this.shortcutsCloseHandler = handler;
     this.shortcutsCloseButton.onclick = handler;
+  }
+
+  setAdminAction(handler: () => void): void {
+    this.worldItemEl.onclick = handler;
+    this.worldItemEl.onkeydown = (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') {
+        return;
+      }
+
+      event.preventDefault();
+      handler();
+    };
   }
 
   showTitle(handler: () => void): void {
@@ -181,6 +230,47 @@ export class HudController {
     return !this.shortcutsOverlayEl.hidden;
   }
 
+  showAdminWorldSelect(
+    worlds: AdminWorldOption[],
+    currentIndex: number,
+    selectHandler: (levelIndex: number) => void,
+    closeHandler: () => void
+  ): void {
+    this.adminCloseHandler = closeHandler;
+    this.adminCloseButton.onclick = closeHandler;
+    this.adminWorldListEl.replaceChildren();
+
+    for (const world of worlds) {
+      const button = this.doc.createElement('button');
+      const label = this.doc.createElement('span');
+      const meta = this.doc.createElement('span');
+
+      button.type = 'button';
+      button.className = 'admin-worlds__button';
+      button.dataset.active = world.index === currentIndex ? 'true' : 'false';
+      button.onclick = () => selectHandler(world.index);
+
+      label.textContent = `World ${world.world}`;
+      meta.textContent = `${world.index + 1}  /  ${this.formatThemeName(world.theme)}`;
+      button.append(label, meta);
+      this.adminWorldListEl.append(button);
+    }
+
+    this.adminOverlayEl.hidden = false;
+    const activeButton =
+      this.adminWorldListEl.querySelector<HTMLButtonElement>('[data-active="true"]') ??
+      this.adminWorldListEl.querySelector<HTMLButtonElement>('button');
+    window.setTimeout(() => activeButton?.focus(), 0);
+  }
+
+  hideAdminWorldSelect(): void {
+    this.adminOverlayEl.hidden = true;
+  }
+
+  isAdminWorldSelectOpen(): boolean {
+    return !this.adminOverlayEl.hidden;
+  }
+
   update(snapshot: HudSnapshot): void {
     this.scoreEl.textContent = snapshot.score.toString().padStart(6, '0');
     this.coinsEl.textContent = snapshot.coins.toString().padStart(2, '0');
@@ -199,6 +289,10 @@ export class HudController {
     this.messageTimer = window.setTimeout(() => {
       this.messageEl.classList.remove('is-visible');
     }, 1350);
+  }
+
+  private formatThemeName(theme: string): string {
+    return theme.charAt(0).toUpperCase() + theme.slice(1);
   }
 
   private showOverlay(copy: OverlayCopy, handler: () => void): void {

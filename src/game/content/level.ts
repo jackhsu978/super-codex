@@ -148,7 +148,7 @@ const WORLD_1_1: LevelDefinition = {
   height: 18,
   timeLimit: 400,
   spawn: { x: 3, y: 14 },
-  checkpoint: { x: 93, y: 14 },
+  checkpoint: { x: 96, y: 14 },
   goal: { x: 153, y: 6 },
   themeRegions: [{ x: 164, y: 5, w: 37, h: 13, theme: 'underground' }],
   solids: [
@@ -288,7 +288,7 @@ const WORLD_1_2: LevelDefinition = {
   height: 18,
   timeLimit: 400,
   spawn: { x: 3, y: 14 },
-  checkpoint: { x: 94, y: 14 },
+  checkpoint: { x: 96, y: 14 },
   goal: { x: 151, y: 14 },
   solids: [
     { x: 0, y: 4, w: 176, h: 2, kind: 'brick' },

@@ -39,7 +39,14 @@
             <span class="hud__label">COIN</span>
             <span class="hud__value"><span class="hud__coin" aria-hidden="true"></span><span aria-hidden="true">×</span><span id="hud-coins">00</span></span>
           </div>
-          <div class="hud__item hud__item--world">
+          <div
+            id="hud-world-entry"
+            class="hud__item hud__item--world hud__item--admin-trigger"
+            role="button"
+            tabindex="0"
+            aria-label="Open admin world select"
+            title="Admin worlds"
+          >
             <span class="hud__label">WORLD</span>
             <span id="hud-world" class="hud__value">1-1</span>
           </div>
@@ -103,6 +110,10 @@
                 <dd>Restart</dd>
               </div>
               <div>
+                <dt><kbd>~</kbd> or <kbd>WORLD</kbd></dt>
+                <dd>Admin worlds</dd>
+              </div>
+              <div>
                 <dt><kbd>?</kbd> or <kbd>Esc</kbd></dt>
                 <dd>Close</dd>
               </div>
@@ -119,6 +130,24 @@
                 <dd>Run / shot</dd>
               </div>
             </dl>
+          </div>
+        </div>
+
+        <div
+          id="admin-overlay"
+          class="admin-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="admin-title"
+          hidden
+        >
+          <div class="admin-panel">
+            <div class="shortcuts__header">
+              <p class="overlay__kicker">Admin Mode</p>
+              <button id="admin-close" class="shortcuts__close" type="button" aria-label="Close admin mode">×</button>
+            </div>
+            <h2 id="admin-title">Choose World</h2>
+            <div id="admin-world-list" class="admin-worlds"></div>
           </div>
         </div>
 
