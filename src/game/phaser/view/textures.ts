@@ -726,18 +726,18 @@ export const ensureGeneratedTextures = (scene: Phaser.Scene): void => {
   });
 
   makeTexture(scene, 'flag', 32, 24, (g) => {
-    g.fillStyle(0x063d1f, 1).fillRect(0, 1, 31, 21);
-    g.fillStyle(0x24b86f, 1).fillRect(2, 3, 26, 17);
-    g.fillStyle(0x79f26d, 1).fillRect(4, 4, 20, 3).fillRect(4, 7, 4, 10);
+    g.fillStyle(0x0b4f28, 1).fillRect(0, 1, 31, 21);
+    g.fillStyle(0x32b84d, 1).fillRect(2, 3, 26, 17);
+    g.fillStyle(0x83f56c, 1).fillRect(4, 4, 20, 3).fillRect(4, 7, 4, 10);
     g.fillStyle(0x0b4f28, 1).fillRect(24, 3, 4, 17).fillRect(2, 18, 26, 2);
-    g.fillStyle(0xe9fff1, 1).fillRect(10, 8, 9, 3).fillRect(8, 11, 13, 4).fillRect(10, 15, 9, 2);
-    g.fillStyle(0x24b86f, 1).fillRect(13, 11, 3, 3);
+    g.fillStyle(0xf8fbff, 1).fillRect(10, 7, 12, 3).fillRect(8, 10, 4, 7).fillRect(18, 10, 4, 7).fillRect(10, 17, 12, 2);
+    g.fillStyle(0x32b84d, 1).fillRect(13, 10, 4, 6);
   });
 
   makeTexture(scene, 'flagpole-cap', 22, 22, (g) => {
-    g.fillStyle(0x7a3f18, 1).fillRect(7, 0, 8, 3).fillRect(4, 3, 14, 3).fillRect(1, 6, 20, 10).fillRect(4, 16, 14, 3).fillRect(7, 19, 8, 3);
-    g.fillStyle(0xffe66d, 1).fillRect(7, 3, 8, 3).fillRect(4, 6, 14, 8).fillRect(7, 14, 8, 3);
-    g.fillStyle(0xfffbca, 1).fillRect(7, 5, 5, 3).fillRect(5, 8, 4, 4);
+    g.fillStyle(0x0b4f28, 1).fillRect(7, 0, 8, 3).fillRect(4, 3, 14, 3).fillRect(1, 6, 20, 10).fillRect(4, 16, 14, 3).fillRect(7, 19, 8, 3);
+    g.fillStyle(0x38c95a, 1).fillRect(7, 3, 8, 3).fillRect(4, 6, 14, 8).fillRect(7, 14, 8, 3);
+    g.fillStyle(0x9dff7e, 1).fillRect(7, 5, 5, 3).fillRect(5, 8, 4, 4);
   });
 
   makeTexture(scene, 'fortress-bridge', 26, 12, (g) => {

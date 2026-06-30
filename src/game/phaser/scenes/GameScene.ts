@@ -1482,9 +1482,9 @@ export class GameScene extends Phaser.Scene {
     this.goalDoorX = houseX;
 
     this.add.image(houseX, baseY + 6, 'goal-house').setOrigin(0.5, 1).setDepth(-2);
-    this.add.rectangle(poleX, poleCenterY, 10, poleHeight, 0x111927).setOrigin(0.5, 0.5).setDepth(1);
-    this.add.rectangle(poleX, poleCenterY, 5, poleHeight, 0xf8fbff).setOrigin(0.5, 0.5).setDepth(2);
-    this.add.rectangle(poleX - 1, poleCenterY, 2, poleHeight, 0xcfd7e6).setOrigin(0.5, 0.5).setDepth(3);
+    this.add.rectangle(poleX, poleCenterY, 8, poleHeight, 0x111927).setOrigin(0.5, 0.5).setDepth(1);
+    this.add.rectangle(poleX, poleCenterY, 4, poleHeight, 0xf8fbff).setOrigin(0.5, 0.5).setDepth(2);
+    this.add.rectangle(poleX - 1, poleCenterY, 1, poleHeight, 0xcfd7e6).setOrigin(0.5, 0.5).setDepth(3);
     this.add.image(poleX, poleTopY, 'flagpole-cap').setDepth(4);
     this.flag = this.add.image(poleX + 18, flagY, 'flag').setOrigin(0, 0.15).setDepth(2);
     this.add.rectangle(poleX, baseY + 8, 58, 14, 0x111927).setOrigin(0.5, 0.5).setDepth(1);
@@ -4254,7 +4254,7 @@ export class GameScene extends Phaser.Scene {
     const flagFireworkCount = this.getFlagFireworkCount(this.runState.time);
     this.runState.score += flagBonus;
     this.showScorePopup(flagBonus, this.level.goal.x * TILE_SIZE + 18, this.player.y - 24);
-    this.hud.flash(`Flag bonus ${flagBonus}`);
+    this.hud.flash(`${flagBonus}`);
     this.cannonShots.clear(true, true);
     this.enemyProjectiles.clear(true, true);
     this.guardianFireballs.clear(true, true);

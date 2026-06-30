@@ -102,9 +102,9 @@ export class HudController {
   showCourseIntro(world: string, lives: number, handler: () => void): void {
     this.showOverlay(
       {
-        kicker: 'Get Ready',
+        kicker: 'Super Codex',
         title: `World ${world}`,
-        copy: `Codex x ${lives}`,
+        copy: `Codex  x  ${lives}`,
         button: 'Start',
         variant: 'course',
         autoStartMs: 1150
@@ -116,8 +116,8 @@ export class HudController {
   showCourseClear(currentWorld: string, nextWorld: string, handler: () => void): void {
     this.showOverlay(
       {
-        kicker: `World ${currentWorld} Clear`,
-        title: 'Course Clear',
+        kicker: `World ${currentWorld}`,
+        title: 'Course Clear!',
         copy: `Next World ${nextWorld}`,
         button: 'Next Course',
         variant: 'course',
