@@ -185,7 +185,9 @@ const WORLD_1_1: LevelDefinition = {
     ...stairs(99, 15, 5),
 
     { x: 117, y: 13, w: 7, h: 1, kind: 'brick' },
-    { x: 128, y: 10, w: 6, h: 1, kind: 'brick' },
+    { x: 128, y: 10, w: 1, h: 1, kind: 'brick' },
+    { x: 129, y: 10, w: 1, h: 1, kind: 'bonus' },
+    { x: 130, y: 10, w: 4, h: 1, kind: 'brick' },
     { x: 135, y: 8, w: 1, h: 1, kind: 'bonus' },
     ...stairs(142, 15, 7),
 
@@ -223,7 +225,9 @@ const WORLD_1_1: LevelDefinition = {
     { x: 21, y: 9 },
     { x: 135, y: 8 }
   ],
-  vineBlocks: [],
+  vineBlocks: [
+    { x: 129, y: 10, topY: 2 }
+  ],
   hiddenBlocks: [
     { x: 21, y: 9 }
   ],

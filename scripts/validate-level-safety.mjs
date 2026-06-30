@@ -56,6 +56,8 @@ try {
   for (const level of LEVELS) {
     const solidTiles = level.solids.flatMap(expandRect);
     const solidTileKeys = new Set(solidTiles.map(formatPoint));
+    const solidTileByKey = new Map(solidTiles.map((tile) => [formatPoint(tile), tile]));
+    const hiddenBlockKeys = new Set(level.hiddenBlocks.map(formatPoint));
     const conduitRects = level.solids.filter(isConduitTile);
     const conduitTileKeys = new Set(solidTiles.filter(isConduitTile).map(formatPoint));
     const hazardTileKeys = new Set(
@@ -83,6 +85,31 @@ try {
       for (const point of points) {
         if (conduitRects.some((rect) => overlapsConduitClearance(point, rect))) {
           failures.push(`${level.world}: ${label} at ${formatPoint(point)} would spawn coins inside a conduit or its mouth`);
+        }
+      }
+    }
+
+    for (const vineBlock of level.vineBlocks) {
+      const vineKey = formatPoint(vineBlock);
+      const sourceTile = solidTileByKey.get(vineKey);
+      const hasHittableSource = sourceTile?.kind === 'bonus' || hiddenBlockKeys.has(vineKey);
+
+      if (!hasHittableSource) {
+        failures.push(`${level.world}: vine block at ${vineKey} is not an active bonus or hidden block`);
+      }
+
+      if (!Number.isInteger(vineBlock.topY) || vineBlock.topY < 0 || vineBlock.topY >= vineBlock.y) {
+        failures.push(`${level.world}: vine block at ${vineKey} has invalid topY ${vineBlock.topY}`);
+      }
+
+      if (conduitRects.some((rect) => overlapsConduitClearance(vineBlock, rect))) {
+        failures.push(`${level.world}: vine block at ${vineKey} would emerge inside a conduit or its mouth`);
+      }
+
+      for (let y = vineBlock.topY; y < vineBlock.y; y += 1) {
+        const shaftKey = `${vineBlock.x},${y}`;
+        if (solidTileKeys.has(shaftKey)) {
+          failures.push(`${level.world}: vine block at ${vineKey} has blocked vine shaft at ${shaftKey}`);
         }
       }
     }
