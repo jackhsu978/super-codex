@@ -193,6 +193,7 @@ const WORLD_1_1: LevelDefinition = {
 
     { x: 124, y: 3, w: 5, h: 1, kind: 'cloud' },
     { x: 130, y: 3, w: 8, h: 1, kind: 'cloud' },
+    ...conduit(138, 3, 2),
 
     { x: 164, y: 5, w: 1, h: 11, kind: 'platform' },
     { x: 165, y: 5, w: 35, h: 1, kind: 'platform' },
@@ -233,6 +234,7 @@ const WORLD_1_1: LevelDefinition = {
   ],
   conduitLinks: [
     { entry: { x: 26, y: 14 }, target: { x: 168, y: 14 }, warpLabel: 'Secret coin room' },
+    { entry: { x: 138, y: 3 }, target: { x: 140, y: 14 }, warpLabel: 'Back to course' },
     { entry: { x: 194, y: 14 }, target: { x: 80, y: 14 }, warpLabel: 'Back to course' }
   ],
   coins: [

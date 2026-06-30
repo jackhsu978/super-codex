@@ -89,6 +89,14 @@ try {
       }
     }
 
+    for (const link of level.conduitLinks) {
+      const entryKey = formatPoint(link.entry);
+      const entryTile = solidTileByKey.get(entryKey);
+      if (entryTile?.kind !== 'conduitTop') {
+        failures.push(`${level.world}: conduit link entry at ${entryKey} is not a conduit top tile`);
+      }
+    }
+
     for (const vineBlock of level.vineBlocks) {
       const vineKey = formatPoint(vineBlock);
       const sourceTile = solidTileByKey.get(vineKey);
