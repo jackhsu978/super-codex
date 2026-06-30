@@ -4610,23 +4610,25 @@ export class GameScene extends Phaser.Scene {
   }
 
   private showScorePopup(score: number | string, x: number, y: number): void {
+    const label = score.toString();
+    const isExtraLife = label.toLowerCase().includes('1-up');
     const popup = this.add
-      .text(x, y, score.toString(), {
-        color: '#fff7a8',
-        fontFamily: 'monospace',
-        fontSize: '18px',
-        fontStyle: '700',
-        stroke: '#26354d',
-        strokeThickness: 4
+      .text(x, y, label.toUpperCase(), {
+        color: isExtraLife ? '#83f56c' : '#ffffff',
+        fontFamily: '"Courier New", "SFMono-Regular", Consolas, monospace',
+        fontSize: isExtraLife ? '17px' : '16px',
+        fontStyle: 'bold',
+        stroke: '#111927',
+        strokeThickness: 3
       })
       .setOrigin(0.5)
       .setDepth(12);
 
     this.tweens.add({
       targets: popup,
-      y: y - 34,
+      y: y - 28,
       alpha: 0,
-      duration: 850,
+      duration: 620,
       ease: 'Quad.out',
       onComplete: () => popup.destroy()
     });
