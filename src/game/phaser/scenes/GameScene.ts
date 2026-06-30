@@ -3676,10 +3676,49 @@ export class GameScene extends Phaser.Scene {
   }
 
   private defeatEnemyWithStar(enemy: Phaser.Physics.Arcade.Sprite): void {
+    const launchDirection = enemy.x < this.player.x ? -1 : 1;
+
     this.spawnSparkBurst(enemy.x, enemy.y);
-    this.defeatEnemy(enemy, this.nextStarReward(), 0xfff08a);
+    this.launchStarDefeatedEnemy(enemy, launchDirection);
     this.cameras.main.shake(45, 0.0012);
     this.playTone(1567.98, 0.045);
+  }
+
+  private launchStarDefeatedEnemy(enemy: Phaser.Physics.Arcade.Sprite, direction: number): void {
+    const body = enemy.body as Phaser.Physics.Arcade.Body;
+    if (!enemy.active || !body.enable) {
+      return;
+    }
+
+    const reward = this.nextStarReward();
+    body.enable = false;
+    enemy.setVelocity(0, 0);
+    enemy.setTint(0xfff08a);
+    enemy.setDepth(6);
+    this.awardComboReward(reward, enemy.x, enemy.y - 18);
+
+    const startX = enemy.x;
+    const startY = enemy.y;
+    this.tweens.add({
+      targets: enemy,
+      x: startX + direction * 24,
+      y: startY - 42,
+      angle: enemy.angle + direction * 170,
+      duration: 150,
+      ease: 'Quad.out',
+      onComplete: () => {
+        this.tweens.add({
+          targets: enemy,
+          x: startX + direction * 64,
+          y: startY + 78,
+          angle: enemy.angle + direction * 260,
+          alpha: 0,
+          duration: 280,
+          ease: 'Quad.in',
+          onComplete: () => enemy.disableBody(true, true)
+        });
+      }
+    });
   }
 
   private tuckEnemyIntoShell(enemy: Phaser.Physics.Arcade.Sprite, reward: ComboReward = 100): void {
