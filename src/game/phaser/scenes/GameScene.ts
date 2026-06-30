@@ -4386,6 +4386,7 @@ export class GameScene extends Phaser.Scene {
     const flagFireworkCount = this.getFlagFireworkCount(this.runState.time);
     this.runState.score += flagBonus;
     this.showScorePopup(flagBonus, this.level.goal.x * TILE_SIZE + 18, this.player.y - 24);
+    this.spawnFlagScoreBurst(this.level.goal.x * TILE_SIZE + 18, this.player.y - 24);
     this.hud.flash(`${flagBonus}`);
     this.cannonShots.clear(true, true);
     this.enemyProjectiles.clear(true, true);
@@ -4547,6 +4548,35 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.time.delayedCall(count * FLAG_FIREWORK_DELAY + 220, onComplete);
+  }
+
+  private spawnFlagScoreBurst(x: number, y: number): void {
+    const burst = this.add.circle(x, y, 5, 0xffffff, 0.86).setDepth(12);
+    this.tweens.add({
+      targets: burst,
+      scale: 2.2,
+      alpha: 0,
+      duration: 230,
+      ease: 'Quad.out',
+      onComplete: () => burst.destroy()
+    });
+
+    const colors = [0xffffff, 0xfff08a, 0x83f56c];
+    for (let index = 0; index < 8; index += 1) {
+      const angle = (Math.PI * 2 * index) / 8;
+      const spark = this.add.image(x, y, 'spark').setDepth(12).setScale(1.05);
+      spark.setTint(colors[index % colors.length]);
+      this.tweens.add({
+        targets: spark,
+        x: x + Math.cos(angle) * 30,
+        y: y + Math.sin(angle) * 18,
+        alpha: 0,
+        scale: 0.28,
+        duration: 340,
+        ease: 'Quad.out',
+        onComplete: () => spark.destroy()
+      });
+    }
   }
 
   private spawnFlagFirework(x: number, y: number): void {
