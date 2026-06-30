@@ -76,16 +76,22 @@ const drawBrickTile = (g: Phaser.GameObjects.Graphics, palette: BlockPalette): v
 
 const drawQuestionBlock = (g: Phaser.GameObjects.Graphics, palette: BlockPalette): void => {
   g.fillStyle(palette.base, 1).fillRect(0, 0, 32, 32);
-  g.fillStyle(palette.highlight, 1).fillRect(4, 4, 23, 4).fillRect(4, 8, 4, 14);
+  g.fillStyle(palette.highlight, 1).fillRect(4, 4, 22, 4).fillRect(4, 8, 4, 14);
+  g.fillStyle(palette.shade, 1).fillRect(25, 5, 3, 22).fillRect(5, 25, 23, 3);
   g.fillStyle(palette.outline, 1).fillRect(0, 0, 32, 3).fillRect(0, 29, 32, 3).fillRect(0, 0, 3, 32).fillRect(29, 0, 3, 32);
-  g.fillStyle(palette.shade, 1).fillRect(5, 24, 4, 4).fillRect(23, 24, 4, 4).fillRect(5, 5, 4, 4).fillRect(23, 5, 4, 4);
-  g.fillStyle(palette.outline, 1)
-    .fillRect(11, 7, 11, 4)
-    .fillRect(20, 10, 4, 6)
-    .fillRect(16, 15, 8, 4)
-    .fillRect(14, 18, 4, 5)
-    .fillRect(14, 25, 4, 4);
-  g.fillStyle(palette.highlight, 0.55).fillRect(13, 8, 6, 1).fillRect(5, 5, 2, 2);
+  g.fillStyle(palette.outline, 1).fillRect(5, 5, 4, 4).fillRect(23, 5, 4, 4).fillRect(5, 23, 4, 4).fillRect(23, 23, 4, 4);
+  g.fillStyle(0xfff4bf, 1)
+    .fillRect(10, 7, 12, 4)
+    .fillRect(21, 10, 4, 7)
+    .fillRect(16, 16, 8, 4)
+    .fillRect(14, 19, 4, 5)
+    .fillRect(14, 26, 4, 3);
+  g.fillStyle(palette.outline, 0.82)
+    .fillRect(12, 10, 7, 2)
+    .fillRect(19, 12, 2, 3)
+    .fillRect(15, 21, 2, 2)
+    .fillRect(15, 27, 2, 1);
+  g.fillStyle(0xffffd6, 0.8).fillRect(11, 8, 8, 1).fillRect(5, 5, 2, 2);
 };
 
 const drawUsedBlock = (g: Phaser.GameObjects.Graphics, palette: BlockPalette): void => {
@@ -96,16 +102,56 @@ const drawUsedBlock = (g: Phaser.GameObjects.Graphics, palette: BlockPalette): v
   g.fillStyle(palette.outline, 0.75).fillRect(9, 9, 2, 2).fillRect(21, 9, 2, 2).fillRect(9, 21, 2, 2).fillRect(21, 21, 2, 2);
 };
 
+type ConduitEdge = 'left' | 'right' | 'middle';
+
+const drawConduitTopTile = (g: Phaser.GameObjects.Graphics, edge: ConduitEdge): void => {
+  g.fillStyle(0x06260f, 1).fillRect(0, 0, 32, 32);
+  g.fillStyle(0x0e7a31, 1).fillRect(0, 8, 32, 24);
+  g.fillStyle(0x24b84f, 1).fillRect(0, 5, 32, 22);
+  g.fillStyle(0x69df58, 1).fillRect(0, 2, 32, 9);
+  g.fillStyle(0xb6ff72, 0.92).fillRect(edge === 'right' ? 3 : 8, 3, 8, 23);
+  g.fillStyle(0x0b4f28, 1).fillRect(0, 11, 32, 4).fillRect(0, 27, 32, 5);
+
+  if (edge === 'left') {
+    g.fillStyle(0x06260f, 1).fillRect(0, 4, 5, 28).fillRect(0, 0, 32, 3);
+    g.fillStyle(0x0a5d28, 1).fillRect(5, 5, 3, 24);
+  } else if (edge === 'right') {
+    g.fillStyle(0x06260f, 1).fillRect(27, 4, 5, 28).fillRect(0, 0, 32, 3);
+    g.fillStyle(0x0a5d28, 1).fillRect(20, 5, 3, 24);
+  } else {
+    g.fillStyle(0x06260f, 1).fillRect(0, 0, 32, 3);
+  }
+
+  g.fillStyle(0xe6ff9a, 0.9).fillRect(edge === 'right' ? 4 : 9, 4, 5, 2);
+};
+
+const drawConduitBodyTile = (g: Phaser.GameObjects.Graphics, edge: ConduitEdge): void => {
+  g.fillStyle(0x06260f, 1).fillRect(0, 0, 32, 32);
+  g.fillStyle(0x0b6a2d, 1).fillRect(0, 0, 32, 32);
+  g.fillStyle(0x20aa49, 1).fillRect(0, 0, 32, 32);
+  g.fillStyle(0x69df58, 1).fillRect(edge === 'right' ? 3 : 8, 0, 8, 32);
+
+  if (edge === 'left') {
+    g.fillStyle(0x06260f, 1).fillRect(0, 0, 5, 32);
+    g.fillStyle(0x0a5d28, 1).fillRect(5, 0, 3, 32);
+  } else if (edge === 'right') {
+    g.fillStyle(0x06260f, 1).fillRect(27, 0, 5, 32);
+    g.fillStyle(0x0a5d28, 1).fillRect(20, 0, 3, 32);
+  }
+
+  g.fillStyle(0xb6ff72, 0.72).fillRect(edge === 'right' ? 4 : 9, 0, 4, 32);
+};
+
 export const ensureGeneratedTextures = (scene: Phaser.Scene): void => {
   makeTexture(scene, 'tile-ground', 32, 32, (g) => {
     drawGrassGroundTile(g, {
-      grass: 0x4dbc45,
-      grassLight: 0x91ee6a,
-      grassDark: 0x207a37,
-      base: 0xc87538,
-      shade: 0x7a3925,
-      highlight: 0xffbd70,
-      mortar: 0x7f3e2c
+      grass: 0x4bd54b,
+      grassLight: 0xa8ff66,
+      grassDark: 0x16833a,
+      base: 0xc96a2a,
+      shade: 0x6a2f1c,
+      highlight: 0xf7b15d,
+      mortar: 0x8c3f24
     });
   });
 
@@ -120,13 +166,13 @@ export const ensureGeneratedTextures = (scene: Phaser.Scene): void => {
 
   makeTexture(scene, 'tile-ground-fill', 32, 32, (g) => {
     drawGrassGroundFillTile(g, {
-      grass: 0x4dbc45,
-      grassLight: 0x91ee6a,
-      grassDark: 0x207a37,
-      base: 0xc87538,
-      shade: 0x7a3925,
-      highlight: 0xffbd70,
-      mortar: 0x7f3e2c
+      grass: 0x4bd54b,
+      grassLight: 0xa8ff66,
+      grassDark: 0x16833a,
+      base: 0xc96a2a,
+      shade: 0x6a2f1c,
+      highlight: 0xf7b15d,
+      mortar: 0x8c3f24
     });
   });
 
@@ -276,24 +322,13 @@ export const ensureGeneratedTextures = (scene: Phaser.Scene): void => {
     g.fillStyle(0xfff4a3, 0.9).fillTriangle(85, 4, 91, 4, 88, 10);
   });
 
-  makeTexture(scene, 'tile-conduit-top', 32, 32, (g) => {
-    g.fillStyle(0x063d1f, 1).fillRect(0, 5, 32, 27);
-    g.fillStyle(0x0c6b30, 1).fillRect(2, 8, 28, 22);
-    g.fillStyle(0x35b84f, 1).fillRect(5, 3, 22, 8);
-    g.fillStyle(0x79f26d, 1).fillRect(7, 4, 7, 23).fillRect(15, 4, 3, 7);
-    g.fillStyle(0x0b4f28, 1).fillRect(0, 5, 4, 27).fillRect(28, 5, 4, 27).fillRect(0, 27, 32, 5);
-    g.fillStyle(0x063d1f, 1).fillRect(2, 0, 28, 3).fillRect(0, 3, 32, 3).fillRect(3, 11, 26, 3);
-    g.fillStyle(0xb7ff8a, 0.9).fillRect(7, 4, 5, 2);
-  });
+  makeTexture(scene, 'tile-conduit-top', 32, 32, (g) => drawConduitTopTile(g, 'middle'));
+  makeTexture(scene, 'tile-conduit-top-left', 32, 32, (g) => drawConduitTopTile(g, 'left'));
+  makeTexture(scene, 'tile-conduit-top-right', 32, 32, (g) => drawConduitTopTile(g, 'right'));
 
-  makeTexture(scene, 'tile-conduit-body', 32, 32, (g) => {
-    g.fillStyle(0x063d1f, 1).fillRect(0, 0, 32, 32);
-    g.fillStyle(0x0c6b30, 1).fillRect(3, 0, 26, 32);
-    g.fillStyle(0x35b84f, 1).fillRect(6, 0, 18, 32);
-    g.fillStyle(0x79f26d, 1).fillRect(8, 0, 6, 32);
-    g.fillStyle(0x0b4f28, 1).fillRect(0, 0, 4, 32).fillRect(28, 0, 4, 32).fillRect(18, 0, 3, 32);
-    g.fillStyle(0xb7ff8a, 0.72).fillRect(8, 0, 4, 32);
-  });
+  makeTexture(scene, 'tile-conduit-body', 32, 32, (g) => drawConduitBodyTile(g, 'middle'));
+  makeTexture(scene, 'tile-conduit-body-left', 32, 32, (g) => drawConduitBodyTile(g, 'left'));
+  makeTexture(scene, 'tile-conduit-body-right', 32, 32, (g) => drawConduitBodyTile(g, 'right'));
 
   makeTexture(scene, 'tile-brick', 32, 32, (g) => {
     drawBrickTile(g, {
@@ -732,33 +767,20 @@ export const ensureGeneratedTextures = (scene: Phaser.Scene): void => {
   });
 
   makeTexture(scene, 'goal-house', 104, 104, (g) => {
-    g.fillStyle(0x111927, 1).fillRect(9, 94, 86, 6).fillRect(12, 33, 80, 63);
-    g.fillStyle(0x7f3e35, 1).fillRect(14, 32, 76, 64);
-    g.fillStyle(0xb96e4b, 1).fillRect(17, 35, 70, 58);
-    g.fillStyle(0xe0a178, 1)
-      .fillRect(20, 39, 11, 4)
-      .fillRect(39, 39, 11, 4)
-      .fillRect(58, 39, 11, 4)
-      .fillRect(77, 39, 7, 4)
-      .fillRect(29, 57, 12, 4)
-      .fillRect(53, 57, 12, 4)
-      .fillRect(20, 78, 11, 4)
-      .fillRect(73, 78, 11, 4);
-    g.fillStyle(0x5a2b25, 1)
-      .fillRect(14, 49, 76, 3)
-      .fillRect(14, 70, 76, 3)
-      .fillRect(31, 35, 3, 58)
-      .fillRect(52, 49, 3, 44)
-      .fillRect(73, 35, 3, 58);
-    g.fillStyle(0x111927, 1).fillRect(16, 23, 16, 14).fillRect(44, 20, 16, 17).fillRect(72, 23, 16, 14);
-    g.fillStyle(0xb96e4b, 1).fillRect(17, 21, 14, 16).fillRect(45, 18, 14, 19).fillRect(73, 21, 14, 16);
-    g.fillStyle(0xe0a178, 1).fillRect(19, 24, 9, 3).fillRect(47, 21, 9, 3).fillRect(75, 24, 9, 3);
-    g.fillStyle(0x111927, 1).fillRect(23, 58, 11, 10).fillRect(70, 58, 11, 10);
-    g.fillStyle(0xf8fbff, 0.72).fillRect(24, 58, 9, 2).fillRect(71, 58, 9, 2);
-    g.fillStyle(0x111927, 1).fillRect(39, 72, 26, 24).fillRect(42, 66, 20, 8).fillRect(46, 61, 12, 6);
-    g.fillStyle(0x0b1024, 1).fillRect(43, 73, 18, 23);
-    g.fillStyle(0x36465f, 1).fillRect(51, 73, 3, 23);
-    g.fillStyle(0xffe66d, 1).fillRect(57, 84, 3, 3);
+    g.fillStyle(0x111927, 1).fillRect(8, 94, 88, 7);
+    g.fillStyle(0x5a2b25, 1).fillRect(12, 42, 80, 53).fillRect(18, 24, 18, 70).fillRect(68, 24, 18, 70);
+    g.fillStyle(0xb96e4b, 1).fillRect(15, 43, 74, 50).fillRect(20, 25, 14, 67).fillRect(70, 25, 14, 67);
+    g.fillStyle(0xe0a178, 1).fillRect(18, 46, 12, 4).fillRect(39, 46, 12, 4).fillRect(60, 46, 12, 4).fillRect(24, 65, 13, 4).fillRect(54, 65, 13, 4).fillRect(72, 31, 8, 3).fillRect(22, 31, 8, 3);
+    g.fillStyle(0x4c241f, 1).fillRect(12, 57, 80, 3).fillRect(12, 78, 80, 3).fillRect(34, 43, 3, 50).fillRect(52, 43, 3, 50).fillRect(67, 25, 3, 68);
+    g.fillStyle(0x111927, 1).fillRect(15, 18, 23, 10).fillRect(66, 18, 23, 10).fillRect(30, 32, 44, 13);
+    g.fillStyle(0xc87538, 1).fillRect(18, 15, 6, 13).fillRect(28, 15, 6, 13).fillRect(69, 15, 6, 13).fillRect(79, 15, 6, 13).fillRect(34, 29, 7, 16).fillRect(48, 29, 7, 16).fillRect(62, 29, 7, 16);
+    g.fillStyle(0xe8a162, 1).fillRect(19, 16, 4, 3).fillRect(29, 16, 4, 3).fillRect(70, 16, 4, 3).fillRect(80, 16, 4, 3).fillRect(35, 30, 5, 3).fillRect(49, 30, 5, 3).fillRect(63, 30, 5, 3);
+    g.fillStyle(0x111927, 1).fillRect(24, 49, 10, 12).fillRect(70, 49, 10, 12);
+    g.fillStyle(0xf8fbff, 0.7).fillRect(25, 50, 8, 2).fillRect(71, 50, 8, 2);
+    g.fillStyle(0x111927, 1).fillEllipse(52, 82, 27, 34).fillRect(39, 82, 26, 15);
+    g.fillStyle(0x0b1024, 1).fillEllipse(52, 84, 20, 28).fillRect(42, 84, 20, 13);
+    g.fillStyle(0x36465f, 1).fillRect(51, 72, 3, 26);
+    g.fillStyle(0xffe66d, 1).fillRect(58, 84, 3, 3);
   });
 
   makeTexture(scene, 'spike', 32, 32, (g) => {

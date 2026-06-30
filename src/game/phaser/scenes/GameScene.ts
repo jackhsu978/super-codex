@@ -630,7 +630,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private createOverworldBackground(width: number, height: number): void {
-    this.add.rectangle(width / 2, height / 2, width, height, 0x75cfff).setDepth(-35);
+    this.add.rectangle(width / 2, height / 2, width, height, 0x5c94fc).setDepth(-35);
     this.createOverworldCloudLayer(width, height);
     this.createOverworldHillLayer(width, height);
     this.createOverworldBushLayer(width, height);
@@ -711,13 +711,18 @@ export class GameScene extends Phaser.Scene {
       const columnX = x + column * step;
       const columnY = baseY - columnHeight;
 
-      graphics.fillStyle(0x45a94b, 1).fillRect(columnX, columnY, step, columnHeight);
-      graphics.fillStyle(0x6bd46f, 1).fillRect(columnX + 2, columnY + 2, step - 4, Math.min(step, columnHeight - 4));
+      graphics.fillStyle(0x2fa044, 1).fillRect(columnX, columnY, step, columnHeight);
+      graphics.fillStyle(0x63d96b, 1).fillRect(columnX + 2, columnY + 2, step - 4, Math.min(step, columnHeight - 4));
 
       if (columnHeight > step * 2) {
-        graphics.fillStyle(0x2f813b, 1).fillRect(columnX + 3, baseY - step, step - 6, 4);
+        graphics.fillStyle(0x1f6f33, 1).fillRect(columnX + 3, baseY - step, step - 6, 4);
       }
     }
+
+    const faceX = Math.round(x + width / 2);
+    const faceY = Math.round(baseY - height * 0.42);
+    graphics.fillStyle(0x174827, 1).fillRect(faceX - 19, faceY, 5, 12).fillRect(faceX + 14, faceY, 5, 12);
+    graphics.fillStyle(0x9cff8b, 0.75).fillRect(faceX - 18, faceY + 1, 2, 3).fillRect(faceX + 15, faceY + 1, 2, 3);
   }
 
   private drawBlockBush(graphics: Phaser.GameObjects.Graphics, x: number, baseY: number, scale: number): void {
@@ -1165,7 +1170,9 @@ export class GameScene extends Phaser.Scene {
   private createSolidTile(x: number, y: number, kind: SolidKind, collidable = true): void {
     const theme = this.getTileTheme(x, y);
     const texture =
-      kind === 'ground' && !collidable ? this.getThemedTexture('tile-ground-fill', theme) : this.getTileTexture(kind, theme);
+      kind === 'ground' && !collidable
+        ? this.getThemedTexture('tile-ground-fill', theme)
+        : this.getTileTexture(kind, theme, x, y);
     const tile = this.solids.create(x * TILE_SIZE, y * TILE_SIZE, texture) as SolidSprite;
     tile.setOrigin(0, 0);
     tile.setData('kind', kind);
@@ -1189,7 +1196,7 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private getTileTexture(kind: SolidKind, theme = this.level.theme): string {
+  private getTileTexture(kind: SolidKind, theme = this.level.theme, x?: number, y?: number): string {
     if (kind === 'ground') {
       return this.getThemedTexture('tile-ground', theme);
     }
@@ -1210,7 +1217,31 @@ export class GameScene extends Phaser.Scene {
       return BONUS_BLOCK_FRAMES[0];
     }
 
-    return kind === 'conduitTop' ? 'tile-conduit-top' : 'tile-conduit-body';
+    return this.getConduitTileTexture(kind, x, y);
+  }
+
+  private getConduitTileTexture(kind: SolidKind, x?: number, y?: number): string {
+    const fallback = kind === 'conduitTop' ? 'tile-conduit-top' : 'tile-conduit-body';
+    if (x === undefined || y === undefined || (kind !== 'conduitTop' && kind !== 'conduitBody')) {
+      return fallback;
+    }
+
+    const conduitRect = this.level.solids.find(
+      (rect) => rect.kind === kind && x >= rect.x && x < rect.x + rect.w && y >= rect.y && y < rect.y + rect.h
+    );
+    if (!conduitRect || conduitRect.w <= 1) {
+      return fallback;
+    }
+
+    if (x === conduitRect.x) {
+      return kind === 'conduitTop' ? 'tile-conduit-top-left' : 'tile-conduit-body-left';
+    }
+
+    if (x === conduitRect.x + conduitRect.w - 1) {
+      return kind === 'conduitTop' ? 'tile-conduit-top-right' : 'tile-conduit-body-right';
+    }
+
+    return fallback;
   }
 
   private getTileTheme(x: number, y: number): LevelTheme {
