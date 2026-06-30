@@ -3499,11 +3499,44 @@ export class GameScene extends Phaser.Scene {
 
   private collectCoin(coin: Phaser.Physics.Arcade.Image): void {
     const x = coin.x;
-    const y = coin.y - 18;
+    const y = coin.y;
     coin.disableBody(true, true);
-    const awardedExtraLife = this.awardCoin(100, x, y);
+    this.spawnCoinCollectBurst(x, y);
+    const awardedExtraLife = this.awardCoin(100, x, y - 18);
     if (!awardedExtraLife) {
       this.playTone(1046.5, 0.045);
+    }
+  }
+
+  private spawnCoinCollectBurst(x: number, y: number): void {
+    const pop = this.add.image(x, y, COIN_FRAMES[this.coinFrame >= 0 ? this.coinFrame : 0]).setDepth(5);
+    this.tweens.add({
+      targets: pop,
+      y: y - 20,
+      alpha: 0,
+      scale: 0.56,
+      duration: 260,
+      ease: 'Quad.out',
+      onUpdate: () => {
+        const frame = Math.floor(this.time.now / COIN_ANIM_FRAME_MS) % COIN_FRAMES.length;
+        pop.setTexture(COIN_FRAMES[frame]);
+      },
+      onComplete: () => pop.destroy()
+    });
+
+    for (const side of [-1, 1]) {
+      const spark = this.add.image(x + side * 8, y - 2, 'spark').setDepth(5).setScale(0.82);
+      spark.setTint(0xfff08a);
+      this.tweens.add({
+        targets: spark,
+        x: x + side * 18,
+        y: y - 14,
+        alpha: 0,
+        scale: 0.3,
+        duration: 220,
+        ease: 'Quad.out',
+        onComplete: () => spark.destroy()
+      });
     }
   }
 
