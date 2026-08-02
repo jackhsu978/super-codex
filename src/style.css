@@ -543,6 +543,10 @@ kbd {
   display: none;
 }
 
+.has-gamepad .touch-controls {
+  display: none !important;
+}
+
 .shortcuts__touch-row {
   display: none;
 }

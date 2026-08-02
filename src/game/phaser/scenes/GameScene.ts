@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { LEVELS, TILE_SIZE, type BalanceLift, type CannonLauncher, type ConduitLink, type EnemyKind, type FallingLift, type Firebar, type LavaBubble, type LevelDefinition, type LevelTheme, type MovingPlatform, type Point, type SolidKind, type ThemeRegion, type VineBlock } from '../../content/level';
 import { createPlatformerControls, type PlatformerControls } from '../../input/bindings';
+import { GamepadControls, type GamepadInputSnapshot } from '../../input/gamepad';
 import { TouchControls } from '../../input/touch';
 import { ensureGeneratedTextures } from '../view/textures';
 import { HudController } from '../../../ui/hud';
@@ -335,6 +336,7 @@ export class GameScene extends Phaser.Scene {
   private levelIndex = 0;
   private carryState?: RunCarryState;
   private controls!: PlatformerControls;
+  private gamepadControls?: GamepadControls;
   private touchControls?: TouchControls;
   private player!: Phaser.Physics.Arcade.Sprite;
   private solids!: Phaser.Physics.Arcade.StaticGroup;
@@ -471,8 +473,9 @@ export class GameScene extends Phaser.Scene {
     ensureGeneratedTextures(this);
     this.createPlayerAnimations();
     this.controls = createPlatformerControls(this);
+    this.gamepadControls = new GamepadControls(this);
     this.touchControls?.destroy();
-    this.touchControls = new TouchControls(document, () => this.openShortcuts());
+    this.touchControls = new TouchControls(document, () => this.openShortcuts('touch'));
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.touchControls?.destroy();
       this.touchControls = undefined;
@@ -507,6 +510,13 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(time: number, delta: number): void {
+    const gamepad = this.gamepadControls?.snapshot();
+    this.hud.setControllerState(Boolean(gamepad?.connected), Boolean(gamepad?.isBackbone));
+    if (this.handleGamepadUiInput(gamepad)) {
+      this.updateHud();
+      return;
+    }
+
     if (this.hud.isShortcutsOpen() || this.hud.isAdminWorldSelectOpen()) {
       return;
     }
@@ -531,7 +541,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.updateTimer(time);
-    this.updatePlayerInput(time, delta);
+    this.updatePlayerInput(time, delta, gamepad);
     this.updateCheckpoint();
     this.updateMovingPlatforms();
     this.carryPlayerOnMovingPlatforms();
@@ -556,6 +566,47 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.updateHud();
+  }
+
+  private handleGamepadUiInput(gamepad?: GamepadInputSnapshot): boolean {
+    if (!gamepad?.connected) {
+      return false;
+    }
+
+    if (this.hud.isAdminWorldSelectOpen()) {
+      if (gamepad.pausePressed || gamepad.cancelPressed || gamepad.helpPressed) {
+        this.closeAdminWorldSelect();
+      }
+      return true;
+    }
+
+    if (this.hud.isShortcutsOpen()) {
+      if (gamepad.pausePressed || gamepad.confirmPressed || gamepad.cancelPressed || gamepad.helpPressed) {
+        this.closeShortcuts();
+      }
+      return true;
+    }
+
+    if (gamepad.helpPressed) {
+      this.openShortcuts('controller');
+      return true;
+    }
+
+    if (gamepad.pausePressed) {
+      if (!this.isStarted || this.isFinished) {
+        this.hud.activatePrimaryAction();
+      } else {
+        this.togglePause();
+      }
+      return true;
+    }
+
+    if ((!this.isStarted || this.isFinished || this.isPaused) && gamepad.confirmPressed) {
+      this.hud.activatePrimaryAction();
+      return true;
+    }
+
+    return false;
   }
 
   private registerKeyboardShortcuts(): void {
@@ -620,7 +671,7 @@ export class GameScene extends Phaser.Scene {
     if (event.key === 'Enter') {
       event.preventDefault();
 
-      if (!this.isStarted) {
+      if (!this.isStarted || this.isFinished) {
         this.hud.activatePrimaryAction();
       } else {
         this.togglePause();
@@ -646,9 +697,9 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private openShortcuts(): void {
+  private openShortcuts(section: 'keyboard' | 'controller' | 'touch' = 'keyboard'): void {
     this.touchControls?.reset();
-    this.hud.showShortcuts();
+    this.hud.showShortcuts(section);
 
     if (this.canPauseRun() && !this.isPaused) {
       this.beginPauseClock();
@@ -1933,7 +1984,7 @@ export class GameScene extends Phaser.Scene {
     this.time.delayedCall(300, () => this.startGameplayMusic());
   }
 
-  private updatePlayerInput(time: number, delta: number): void {
+  private updatePlayerInput(time: number, delta: number, gamepad?: GamepadInputSnapshot): void {
     const body = this.player.body as Phaser.Physics.Arcade.Body;
     if (this.isConduitTransitioning || this.isDamageRecovering) {
       this.releaseVine(body);
@@ -1943,33 +1994,58 @@ export class GameScene extends Phaser.Scene {
     }
 
     const touch = this.touchControls?.snapshot();
-    const leftDown = this.controls.cursors.left.isDown || this.controls.left.isDown || Boolean(touch?.leftDown);
-    const rightDown = this.controls.cursors.right.isDown || this.controls.right.isDown || Boolean(touch?.rightDown);
-    const upDown = this.controls.cursors.up.isDown || this.controls.jump.isDown || Boolean(touch?.upDown);
-    const spaceDown = this.controls.jumpAlt.isDown || Boolean(touch?.jumpDown);
-    const jumpDown = upDown || spaceDown;
+    const leftDown =
+      this.controls.cursors.left.isDown ||
+      this.controls.left.isDown ||
+      Boolean(touch?.leftDown) ||
+      Boolean(gamepad?.leftDown);
+    const rightDown =
+      this.controls.cursors.right.isDown ||
+      this.controls.right.isDown ||
+      Boolean(touch?.rightDown) ||
+      Boolean(gamepad?.rightDown);
+    const keyboardUpDown = this.controls.cursors.up.isDown || this.controls.jump.isDown;
+    const touchUpDown = Boolean(touch?.upDown);
+    const upDown = keyboardUpDown || touchUpDown || Boolean(gamepad?.upDown);
+    const spaceDown = this.controls.jumpAlt.isDown || Boolean(touch?.jumpDown) || Boolean(gamepad?.jumpDown);
+    const jumpDown = keyboardUpDown || touchUpDown || spaceDown;
     this.jumpHeld = jumpDown;
     const jumpPressed =
       Phaser.Input.Keyboard.JustDown(this.controls.cursors.up) ||
       Phaser.Input.Keyboard.JustDown(this.controls.jump) ||
       Phaser.Input.Keyboard.JustDown(this.controls.jumpAlt) ||
-      Boolean(touch?.jumpPressed);
-    const spacePressed = Phaser.Input.Keyboard.JustDown(this.controls.jumpAlt) || Boolean(touch?.jumpPressed);
-    const downDown = this.controls.cursors.down.isDown || this.controls.down.isDown || Boolean(touch?.downDown);
+      Boolean(touch?.jumpPressed) ||
+      Boolean(gamepad?.jumpPressed);
+    const spacePressed =
+      Phaser.Input.Keyboard.JustDown(this.controls.jumpAlt) ||
+      Boolean(touch?.jumpPressed) ||
+      Boolean(gamepad?.jumpPressed);
+    const downDown =
+      this.controls.cursors.down.isDown ||
+      this.controls.down.isDown ||
+      Boolean(touch?.downDown) ||
+      Boolean(gamepad?.downDown);
     const downPressed =
       Phaser.Input.Keyboard.JustDown(this.controls.cursors.down) ||
       Phaser.Input.Keyboard.JustDown(this.controls.down) ||
-      Boolean(touch?.downPressed);
+      Boolean(touch?.downPressed) ||
+      Boolean(gamepad?.downPressed);
     const runPressed =
       Phaser.Input.Keyboard.JustDown(this.controls.run) ||
       (this.controls.cursors.shift ? Phaser.Input.Keyboard.JustDown(this.controls.cursors.shift) : false) ||
-      Boolean(touch?.runPressed);
+      Boolean(touch?.runPressed) ||
+      Boolean(gamepad?.runPressed);
     const attackPressed =
       Phaser.Input.Keyboard.JustDown(this.controls.attack) ||
       Phaser.Input.Keyboard.JustDown(this.controls.attackAlt) ||
       Boolean(touch?.attackPressed) ||
+      Boolean(gamepad?.attackPressed) ||
       runPressed;
-    const runDown = this.controls.run.isDown || Boolean(this.controls.cursors.shift?.isDown) || Boolean(touch?.runDown);
+    const runDown =
+      this.controls.run.isDown ||
+      Boolean(this.controls.cursors.shift?.isDown) ||
+      Boolean(touch?.runDown) ||
+      Boolean(gamepad?.runDown);
     const direction = Number(rightDown) - Number(leftDown);
     const onGround = body.blocked.down || body.touching.down;
     const velocityXBeforeMove = body.velocity.x;

@@ -43,6 +43,8 @@ export class HudController {
   private adminCloseHandler?: () => void;
   private messageTimer = 0;
   private overlayTimer = 0;
+  private controllerActive = false;
+  private backboneActive = false;
   private readonly handleShortcutsKeydown = (event: KeyboardEvent): void => {
     if (this.shortcutsOverlayEl.hidden || event.repeat) {
       return;
@@ -128,6 +130,23 @@ export class HudController {
       event.preventDefault();
       handler();
     };
+  }
+
+  setControllerState(active: boolean, backbone: boolean): void {
+    const nextBackboneActive = active && backbone;
+    if (active === this.controllerActive && nextBackboneActive === this.backboneActive) {
+      return;
+    }
+
+    const wasActive = this.controllerActive;
+    this.controllerActive = active;
+    this.backboneActive = nextBackboneActive;
+    this.doc.documentElement.classList.toggle('has-gamepad', active);
+    this.doc.documentElement.classList.toggle('has-backbone', nextBackboneActive);
+
+    if (active && !wasActive) {
+      this.flash(nextBackboneActive ? 'Backbone ready' : 'Controller ready');
+    }
   }
 
   showTitle(handler: () => void): void {
@@ -217,9 +236,23 @@ export class HudController {
     this.overlayEl.hidden = true;
   }
 
-  showShortcuts(): void {
+  showShortcuts(section: 'keyboard' | 'controller' | 'touch' = 'keyboard'): void {
     this.shortcutsOverlayEl.hidden = false;
-    window.setTimeout(() => this.shortcutsCloseButton.focus(), 0);
+    window.setTimeout(() => {
+      this.shortcutsCloseButton.focus({ preventScroll: true });
+      const panel = this.shortcutsOverlayEl.querySelector<HTMLElement>('.shortcuts__panel');
+      if (!panel) {
+        return;
+      }
+
+      if (section === 'keyboard') {
+        panel.scrollTop = 0;
+        return;
+      }
+
+      const target = panel.querySelector<HTMLElement>(`.shortcuts__${section}-row`);
+      target?.scrollIntoView({ block: 'center', inline: 'nearest' });
+    }, 0);
   }
 
   hideShortcuts(): void {
