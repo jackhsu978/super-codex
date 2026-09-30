@@ -55,7 +55,7 @@ export class HudController {
     }
 
     event.preventDefault();
-    event.stopPropagation();
+    event.stopImmediatePropagation();
     this.shortcutsCloseHandler?.();
   };
 
@@ -69,7 +69,7 @@ export class HudController {
     }
 
     event.preventDefault();
-    event.stopPropagation();
+    event.stopImmediatePropagation();
     this.adminCloseHandler?.();
   };
 
@@ -109,6 +109,19 @@ export class HudController {
 
     doc.addEventListener('keydown', this.handleShortcutsKeydown, true);
     doc.addEventListener('keydown', this.handleAdminKeydown, true);
+    this.shortcutsOverlayEl.querySelectorAll<HTMLButtonElement>('[data-controls]').forEach((button) => {
+      button.onclick = () => this.selectControls(button.dataset.controls!);
+      button.onkeydown = (event) => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault();
+        const buttons = Array.from(this.shortcutsOverlayEl.querySelectorAll<HTMLButtonElement>('[data-controls]'));
+        const index = buttons.indexOf(button);
+        const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 :
+          (index + (event.key === 'ArrowRight' ? 1 : -1) + buttons.length) % buttons.length;
+        buttons[next].click();
+        buttons[next].focus();
+      };
+    });
   }
 
   setPrimaryAction(handler: () => void): void {
@@ -162,7 +175,7 @@ export class HudController {
   }
 
   activatePrimaryAction(): void {
-    if (!this.primaryButton.hidden && !this.primaryButton.disabled) {
+    if (!this.overlayEl.hidden && !this.primaryButton.hidden && !this.primaryButton.disabled) {
       this.primaryButton.click();
     }
   }
@@ -237,6 +250,7 @@ export class HudController {
   }
 
   showShortcuts(section: 'keyboard' | 'controller' | 'touch' = 'keyboard'): void {
+    this.selectControls(section);
     this.shortcutsOverlayEl.hidden = false;
     window.setTimeout(() => {
       this.shortcutsCloseButton.focus({ preventScroll: true });
@@ -245,14 +259,16 @@ export class HudController {
         return;
       }
 
-      if (section === 'keyboard') {
-        panel.scrollTop = 0;
-        return;
-      }
-
-      const target = panel.querySelector<HTMLElement>(`.shortcuts__${section}-row`);
-      target?.scrollIntoView({ block: 'center', inline: 'nearest' });
+      panel.scrollTop = 0;
     }, 0);
+  }
+
+  private selectControls(section: string): void {
+    this.shortcutsOverlayEl.dataset.controls = section;
+    this.shortcutsOverlayEl.querySelectorAll<HTMLButtonElement>('[data-controls]').forEach((button) => {
+      button.setAttribute('aria-selected', String(button.dataset.controls === section));
+      button.tabIndex = button.dataset.controls === section ? 0 : -1;
+    });
   }
 
   hideShortcuts(): void {
@@ -341,13 +357,21 @@ export class HudController {
     this.setPrimaryAction(handler);
     this.overlayEl.hidden = false;
     if (copy.autoStartMs) {
-      this.overlayTimer = window.setTimeout(() => {
-        if (!this.overlayEl.hidden) {
-          handler();
+      const advance = (): void => {
+        if (this.overlayEl.hidden) return;
+        if (this.isShortcutsOpen() || this.isAdminWorldSelectOpen() || this.doc.hidden) {
+          this.overlayTimer = window.setTimeout(advance, 100);
+          return;
         }
-      }, copy.autoStartMs);
+        handler();
+      };
+      this.overlayTimer = window.setTimeout(advance, copy.autoStartMs);
     } else {
-      window.setTimeout(() => this.primaryButton.focus(), 0);
+      window.setTimeout(() => {
+        if (!this.overlayEl.hidden && !this.isShortcutsOpen() && !this.isAdminWorldSelectOpen()) {
+          this.primaryButton.focus({ preventScroll: true });
+        }
+      }, 0);
     }
   }
 

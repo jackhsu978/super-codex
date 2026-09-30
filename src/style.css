@@ -42,13 +42,14 @@ button {
   display: grid;
   width: 100vw;
   min-height: 100vh;
-  place-items: start center;
+  place-items: center;
+  min-height: 100dvh;
   background: #000000;
 }
 
 .game-stage {
   position: relative;
-  width: min(100vw, 1024px);
+  width: min(100vw, 1024px, 177.7778dvh);
   aspect-ratio: 16 / 9;
   max-height: 100vh;
   overflow: hidden;
@@ -235,7 +236,7 @@ button {
 }
 
 .shortcuts {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 7;
   display: grid;
@@ -250,7 +251,7 @@ button {
 
 .shortcuts__panel {
   width: min(520px, 100%);
-  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
   overflow: auto;
   padding: clamp(20px, 3vw, 28px);
   border: 2px solid rgba(255, 255, 255, 0.32);
@@ -261,6 +262,11 @@ button {
 }
 
 .shortcuts__header {
+  position: sticky;
+  top: -1px;
+  z-index: 1;
+  padding-bottom: 8px;
+  background: #0d1826;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -294,7 +300,7 @@ button {
 .shortcuts h2 {
   margin: 4px 0 18px;
   color: #ffffff;
-  font-size: clamp(1.7rem, 4vw, 2.5rem);
+  font-size: 1.7rem;
   line-height: 1;
   letter-spacing: 0;
 }
@@ -303,6 +309,49 @@ button {
   display: grid;
   gap: 10px;
   margin: 0;
+}
+
+.shortcuts__modes {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 4px;
+  background: #080f19;
+  border-radius: 6px;
+}
+
+.shortcuts__modes button {
+  flex: 1;
+  min-width: 0;
+  min-height: 38px;
+  padding: 6px 4px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #d9f5ff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.shortcuts__modes button[aria-selected="true"] {
+  background: #ffcf4a;
+  color: #162033;
+}
+
+.shortcuts__modes button:focus-visible {
+  outline: 2px solid #ffffff;
+}
+
+.shortcuts[data-controls="keyboard"] .shortcuts__controller-row,
+.shortcuts[data-controls="keyboard"] .shortcuts__touch-row,
+.shortcuts[data-controls="controller"] .shortcuts__list > div:not(.shortcuts__controller-row),
+.shortcuts[data-controls="touch"] .shortcuts__list > div:not(.shortcuts__touch-row) {
+  display: none !important;
+}
+
+.shortcuts[data-controls="touch"] .shortcuts__list > .shortcuts__touch-row {
+  display: grid !important;
 }
 
 .shortcuts__list div {
@@ -349,7 +398,7 @@ kbd {
 }
 
 .admin-overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 8;
   display: grid;
@@ -364,7 +413,7 @@ kbd {
 
 .admin-panel {
   width: min(560px, 100%);
-  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
   overflow: auto;
   padding: clamp(20px, 3vw, 28px);
   border: 2px solid rgba(255, 255, 255, 0.32);
@@ -377,7 +426,7 @@ kbd {
 .admin-panel h2 {
   margin: 4px 0 18px;
   color: #ffffff;
-  font-size: clamp(1.7rem, 4vw, 2.45rem);
+  font-size: 1.7rem;
   line-height: 1;
   letter-spacing: 0;
 }
@@ -424,7 +473,7 @@ kbd {
 }
 
 .overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 6;
   display: grid;
@@ -441,6 +490,8 @@ kbd {
 
 .overlay__panel {
   width: min(460px, 100%);
+  max-height: calc(100dvh - 48px);
+  overflow: auto;
   padding: clamp(22px, 4vw, 34px);
   border: 2px solid rgba(255, 255, 255, 0.28);
   border-radius: 8px;
@@ -452,7 +503,7 @@ kbd {
 .overlay h1 {
   margin: 6px 0 10px;
   color: #ffffff;
-  font-size: clamp(2rem, 7vw, 4rem);
+  font-size: 2.75rem;
   line-height: 0.95;
   letter-spacing: 0;
 }
@@ -461,7 +512,7 @@ kbd {
   margin: 0 auto 22px;
   max-width: 34ch;
   color: #d9f5ff;
-  font-size: clamp(0.95rem, 2.2vw, 1.05rem);
+  font-size: 1rem;
   line-height: 1.45;
 }
 
@@ -753,7 +804,7 @@ kbd {
 
 @media (max-width: 680px) {
   .game-stage {
-    width: 100vw;
+    width: min(100vw, 177.7778dvh);
   }
 
   .hud {
@@ -782,4 +833,32 @@ kbd {
   .shortcuts__list dd {
     text-align: left;
   }
+}
+
+@media (pointer: coarse) and (orientation: portrait) {
+  .touch-controls {
+    position: fixed;
+  }
+
+  .touch-gesture-layer {
+    top: calc(50% - 28.125vw);
+    bottom: auto;
+    height: 56.25vw;
+  }
+
+  .touch-help {
+    top: auto;
+    bottom: max(126px, calc(env(safe-area-inset-bottom) + 110px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #hud-time.is-warning { animation: none; }
+  .message, .overlay__button { transition: none; }
+}
+
+@media (max-width: 380px) {
+  .shortcuts__panel { padding: 16px; }
+  .shortcuts__modes { gap: 2px; }
+  .shortcuts__modes button { padding-inline: 2px; font-size: 0.8125rem; }
 }

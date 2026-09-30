@@ -132,12 +132,13 @@ export class GamepadControls {
     const pads = plugin.getAll().filter((pad) => pad.connected);
     if (this.activePadIndex !== undefined) {
       const activePad = pads.find((pad) => pad.index === this.activePadIndex);
-      if (activePad) {
+      if (activePad && this.hasInput(activePad)) {
         return activePad;
       }
     }
 
-    return pads.find((pad) => this.hasInput(pad)) ?? pads[0];
+    return pads.find((pad) => this.hasInput(pad)) ??
+      pads.find((pad) => pad.index === this.activePadIndex) ?? pads[0];
   }
 
   private hasInput(pad: Phaser.Input.Gamepad.Gamepad): boolean {

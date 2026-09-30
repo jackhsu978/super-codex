@@ -615,10 +615,26 @@ export class GameScene extends Phaser.Scene {
     }
 
     document.addEventListener('keydown', this.handleGlobalKeydown, true);
+    window.addEventListener('blur', this.handleFocusLoss);
+    document.addEventListener('visibilitychange', this.handleVisibilityChange);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       document.removeEventListener('keydown', this.handleGlobalKeydown, true);
+      window.removeEventListener('blur', this.handleFocusLoss);
+      document.removeEventListener('visibilitychange', this.handleVisibilityChange);
     });
   }
+
+  private readonly handleFocusLoss = (): void => {
+    this.touchControls?.reset();
+    this.input.keyboard?.resetKeys();
+    if (this.canPauseRun() && !this.hud.isShortcutsOpen() && !this.hud.isAdminWorldSelectOpen()) {
+      this.pauseRun();
+    }
+  };
+
+  private readonly handleVisibilityChange = (): void => {
+    if (document.hidden) this.handleFocusLoss();
+  };
 
   private readonly handleGlobalKeydown = (event: KeyboardEvent): void => {
     if (event.repeat) {
